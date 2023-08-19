@@ -5,14 +5,11 @@ import { GeneratorService } from '..';
 
 @Injectable()
 export class InkRequestMiddleware implements NestMiddleware {
-    constructor(private readonly generateService: GeneratorService) {}
+  constructor(private readonly generateService: GeneratorService) {}
   use(req: Request, res: Response, next: NextFunction) {
-    // Generate or retrieve your ID here
-    const generatedId = this.generateService.uuid(); // Implement your own logic here
-    
+    const generatedId = this.generateService.uuid();
     // Add the ID to the request object
     (req as InkRequestInterface).id = generatedId;
-    
     next();
   }
 }

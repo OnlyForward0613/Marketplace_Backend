@@ -8,8 +8,72 @@ datasource db {
 }
 
 model User {
-  id                String        @id @unique
-  username          String        @unique
-  email             String        @unique
-  password          String
+  id            String       @id @unique
+  username      String       @unique
+  walletAddress String       @unique
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  items         Item[]       @relation("seller")
+  boughtItems   Item[]       @relation("buyer")
+  orders        Order[]      @relation("seller")
+  boughtOrders  Order[]      @relation("buyer")
+  Collection    Collection[]
+}
+
+model Item {
+  id                     String   @id @unique
+  tokenId                String
+  sellerId               String
+  buyerId                String?
+  status                 String
+  transactionHash        String?
+  listingTransactionHash String?
+  price                  String
+  seller                 User     @relation("seller", fields: [sellerId], references: [id])
+  buyer                  User?    @relation("buyer", fields: [buyerId], references: [id])
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  orders                 Order[]
+}
+
+model Order {
+  id        String   @id @unique
+  itemId    String
+  sellerId  String
+  buyerId   String?
+  type      String
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  item      Item     @relation(fields: [itemId], references: [id])
+  seller    User     @relation("seller", fields: [sellerId], references: [id])
+  buyer     User?    @relation("buyer", fields: [buyerId], references: [id])
+}
+
+model Collection {
+  id         String                @id @unique
+  name       String
+  creatorId  String
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+  creator    User                  @relation(fields: [creatorId], references: [id])
+  attributes CollectionAttribute[]
+  nfts       NFT[]
+}
+
+model CollectionAttribute {
+  id           String     @id @unique
+  collectionId String
+  name         String
+  type         String
+  options      String[]
+  collection   Collection @relation(fields: [collectionId], references: [id])
+}
+
+model NFT {
+  id           String     @id @unique
+  collectionId String
+  tokenId      String
+  attributes   Json
+  collection   Collection @relation(fields: [collectionId], references: [id])
 }
