@@ -8,19 +8,31 @@ import { PrismaModule } from './prisma';
 import { CommonModule } from './common';
 import { LoggerMiddleware } from '@common/middleware';
 import { InkRequestMiddleware } from '@common/middleware/ink-request.middleware';
+import { MarketplaceModule } from '@modules/marketplace';
+import { LaunchpadModule } from '@modules/launchpad';
+import { SeaportModule } from './seaport';
+
 @Module({
   imports: [
-
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
     }),
     RouterModule.register([
+      {
+        path: 'marketplace',
+        module: MarketplaceModule,
+      },
+      {
+        path: 'launchpad',
+        module: LaunchpadModule,
+      },
     ]),
 
     HealthModule,
     CommonModule,
     PrismaModule,
+    SeaportModule
   ],
   controllers: [],
   providers: [],
@@ -31,4 +43,3 @@ export class AppModule implements NestModule {
     consumer.apply(LoggerMiddleware, InkRequestMiddleware).forRoutes('*');
   }
 }
-
