@@ -11,13 +11,43 @@ model User {
   id            String       @id @unique
   username      String       @unique
   walletAddress String       @unique
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  nonce         String
+  profile       Profile?
+  isActive      Boolean      @default(true)
   items         Item[]       @relation("seller")
   boughtItems   Item[]       @relation("buyer")
   orders        Order[]      @relation("seller")
   boughtOrders  Order[]      @relation("buyer")
   Collection    Collection[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Profile {
+  id        String   @id @unique
+  bio       String?
+  avatar    Photo?   @relation("avatar", fields: [avatarId], references: [id])
+  avatarId  String?  @unique
+  banner    Photo?   @relation("banner", fields: [bannerId], references: [id])
+  bannerId  String?  @unique
+  name      String?
+  lastName  String?
+  User      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Photo {
+  id            String      @id @unique
+  url           String
+  fileEntityId  String      @unique
+  file          FileEntity?
+  link          String?
+  profileAvatar Profile?    @relation("avatar")
+  profileBanner Profile?    @relation("banner")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Item {
@@ -76,4 +106,18 @@ model NFT {
   tokenId      String
   attributes   Json
   collection   Collection @relation(fields: [collectionId], references: [id])
+}
+
+model FileEntity {
+  id          String   @id @unique
+  fileName    String
+  path        String
+  key         String
+  mimeType    String
+  size        Int
+  description String
+  photo       Photo?   @relation(fields: [photoId], references: [id])
+  photoId     String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
