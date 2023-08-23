@@ -11,6 +11,9 @@ import { InkRequestMiddleware } from '@common/middleware/ink-request.middleware'
 import { MarketplaceModule } from '@modules/marketplace';
 import { LaunchpadModule } from '@modules/launchpad';
 import { SeaportModule } from './seaport';
+import { RedisModule } from '@redis/redis.module';
+import { AuthModule } from '@modules/auth';
+import { UserModule } from '@modules/user';
 
 @Module({
   imports: [
@@ -27,12 +30,20 @@ import { SeaportModule } from './seaport';
         path: 'launchpad',
         module: LaunchpadModule,
       },
+
+      {
+        path: 'user',
+        module: UserModule,
+      },
     ]),
 
     HealthModule,
     CommonModule,
     PrismaModule,
-    SeaportModule
+    SeaportModule,
+    AuthModule,
+    UserModule,
+    RedisModule,
   ],
   controllers: [],
   providers: [],
