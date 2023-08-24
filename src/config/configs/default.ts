@@ -26,10 +26,6 @@ export const config = {
     JWT_EXPIRE_REFRESH_TIME: 86400,
     SESSION_SECRET: 'SESSION_SECRET',
   },
-  social: {
-    TWITTER_CONSUMER_KEY: '',
-    TWITTER_CONSUMER_SECRET: '',
-  },
   s3Bucket: {
     AWS_S3_BUCKET_REGION: process.env.AWS_S3_BUCKET_REGION,
     AWS_S3_ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID,
@@ -37,12 +33,4 @@ export const config = {
     AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
     AWS_S3_API_VERSION: process.env.AWS_S3_API_VERSION,
   },
-  email: {
-    MG_PRIVATE_API_KEY: process.env.MG_PRIVATE_API_KEY,
-    MG_PUBLIC_API_KEY: process.env.MG_PUBLIC_API_KEY,
-    MG_SANDBOX_DOMAIN: process.env.MG_SANDBOX_DOMAIN,
-    MG_URL: process.env.MG_URL,
-    MG_USERNAME: process.env.MG_USERNAME,
-  },
-  emailConfirmationExpireTime: 3600,
 };

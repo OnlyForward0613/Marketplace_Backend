@@ -16,6 +16,12 @@ export const config = {
     DB_PORT: Number(process.env.DB_PORT),
     DATABASE_URL: process.env.DATABASE_URL,
   },
+
+  redis: {
+    REDIS_HOST: process.env.REDIS_HOST,
+    REDIS_PORT: Number(process.env.REDIS_PORT),
+    REDIS_URL: process.env.REDIS_URL,
+  },
   secrets: {
     JWT_PRIVATE_KEY: process.env.JWT_PRIVATE_KEY,
     JWT_REFRESH_PRIVATE_KEY: process.env.JWT_REFRESH_PRIVATE_KEY,
@@ -26,11 +32,5 @@ export const config = {
     JWT_EXPIRE_REFRESH_TIME: Number(process.env.JWT_EXPIRE_REFRESH_TIME),
     SESSION_SECRET: process.env.SESSION_SECRET,
   },
-  social: {
-    TWITTER_CONSUMER_KEY: process.env.TWITTER_CONSUMER_KEY,
-    TWITTER_CONSUMER_SECRET: process.env.TWITTER_CONSUMER_SECRET,
-  },
-  emailConfirmationExpireTime: Number(
-    process.env.EMAIL_CONFIRMATION_EXPIRE_TIME,
-  ),
+  
 };

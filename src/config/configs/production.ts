@@ -26,12 +26,11 @@ export const config = {
     JWT_EXPIRE_REFRESH_TIME: Number(process.env.JWT_EXPIRE_REFRESH_TIME),
     SESSION_SECRET: process.env.SESSION_SECRET,
   },
-  social: {
-    TWITTER_CONSUMER_KEY: process.env.TWITTER_CONSUMER_KEY,
-    TWITTER_CONSUMER_SECRET: process.env.TWITTER_CONSUMER_SECRET,
+  redis: {
+    REDIS_HOST: process.env.REDIS_HOST,
+    REDIS_PORT: process.env.REDIS_PORT,
+    REDIS_USERNAME: process.env.REDIS_USERNAME,
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+    REDIS_URL: process.env.REDIS_URL,
   },
-
-  emailConfirmationExpireTime: Number(
-    process.env.EMAIL_CONFIRMATION_EXPIRE_TIME,
-  ),
 };
