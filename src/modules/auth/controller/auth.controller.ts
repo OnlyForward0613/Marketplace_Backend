@@ -28,7 +28,15 @@ export class AuthController {
     private authService: AuthService,
     private generatorService: GeneratorService,
   ) {}
-
+  @Public()
+  @Post('nonce')
+  @HttpCode(HttpStatus.OK)
+  async nonce(
+    @Body() data: {walletAddress: string},
+    @Request() req: Request,
+  ) {
+    return this.authService.generateNonce(data)
+  }
   @Public()
   @Post('signin')
   @HttpCode(HttpStatus.OK)

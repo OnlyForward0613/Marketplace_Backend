@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { compare, hash } from 'bcryptjs';
+import { compare, hash,  } from 'bcryptjs';
+import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 
 /** Salt or number of rounds to generate a salt */
 export type Salt = string | number;
@@ -39,8 +40,18 @@ export class TokenService {
   async hash(token: string): Promise<string> {
     return await hash(token, this.salt);
   }
-}
 
+  async verifySignature(walletAddress: string, signature: string, nonce: string): Promise<boolean>{
+    const recoveredAddress = recoverPersonalSignature({
+      data: hexNonce(nonce),
+      signature,
+    });
+    return walletAddress.toLowerCase() === recoveredAddress.toLowerCase();
+  }
+}
+export function hexNonce(nonce: string) {
+  return `0x${Buffer.from(nonce).toString('hex')}`
+}
 /**
  * Parses a salt environment variable value.
  * If a number string value is given tries to parse it as a number of rounds to generate a salt

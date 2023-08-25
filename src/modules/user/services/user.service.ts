@@ -12,7 +12,6 @@ import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { RedisE } from '@redis/redis.enum';
 import { RedisService } from '@redis/redis.service';
-// import { AuthService } from '@modules/auth/services';
 
 @Injectable()
 export class UserService {
@@ -27,9 +26,6 @@ export class UserService {
       data: {
         id: this.generatorService.uuid(),
         ...data,
-        walletAddress: {
-          create: '',
-        },
       },
     });
   }
