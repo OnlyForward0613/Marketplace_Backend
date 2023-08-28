@@ -14,6 +14,7 @@ import { SeaportModule } from './seaport';
 import { RedisModule } from '@redis/redis.module';
 import { AuthModule } from '@modules/auth';
 import { UserModule } from '@modules/user';
+import { CollectionModule } from '@modules/collection';
 
 @Module({
   imports: [
@@ -25,6 +26,10 @@ import { UserModule } from '@modules/user';
       {
         path: 'marketplace',
         module: MarketplaceModule,
+      },
+      {
+        path: 'collection',
+        module: CollectionModule,
       },
       {
         path: 'launchpad',

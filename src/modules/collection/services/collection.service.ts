@@ -6,8 +6,10 @@ import { PrismaService } from '@prisma/prisma.service';
 
 @Injectable()
 export class CollectionService {
-  constructor(private readonly prisma: PrismaService) {}
-
+  constructor(private readonly prismaService: PrismaService) {}
+  async getCollections() {
+    return this.prismaService.collection.findMany();
+  }
   async createCollection(createCollectionDto: CreateCollectionDto) {
     // Logic to create a new collection
   }
