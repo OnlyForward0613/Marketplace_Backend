@@ -14,13 +14,13 @@ model User {
   nonce         String
   profile       Profile?
   isActive      Boolean      @default(true)
-  items         Item[]       @relation("seller")
-  boughtItems   Item[]       @relation("buyer")
   orders        Order[]      @relation("seller")
   boughtOrders  Order[]      @relation("buyer")
   Collection    Collection[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+  Listing       Listing[]
+  NFT           NFT[]
 }
 
 model Profile {
@@ -50,34 +50,21 @@ model Photo {
   updatedAt     DateTime    @updatedAt
 }
 
-model Item {
-  id                     String   @id @unique
-  tokenId                String
-  sellerId               String
-  buyerId                String?
-  status                 String
-  transactionHash        String?
-  listingTransactionHash String?
-  price                  String
-  seller                 User     @relation("seller", fields: [sellerId], references: [id])
-  buyer                  User?    @relation("buyer", fields: [buyerId], references: [id])
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-  orders                 Order[]
-}
-
 model Order {
-  id        String   @id @unique
-  itemId    String
-  sellerId  String
-  buyerId   String?
-  type      String
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  item      Item     @relation(fields: [itemId], references: [id])
-  seller    User     @relation("seller", fields: [sellerId], references: [id])
-  buyer     User?    @relation("buyer", fields: [buyerId], references: [id])
+  id              String      @id @unique
+  amount          Int
+  status          OrderStatus
+  nftId           String
+  sellerId        String
+  buyerId         String?
+  transactionHash String?
+  nft             NFT         @relation(fields: [nftId], references: [id])
+  seller          User        @relation("seller", fields: [sellerId], references: [id])
+  buyer           User?       @relation("buyer", fields: [buyerId], references: [id])
+  listing         Listing     @relation(fields: [listingId], references: [id])
+  listingId       String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }
 
 model Collection {
@@ -106,6 +93,10 @@ model NFT {
   tokenId      String
   attributes   Json
   collection   Collection @relation(fields: [collectionId], references: [id])
+  Listing      Listing[]
+  Order        Order[]
+  User         User?      @relation(fields: [userId], references: [id])
+  userId       String?
 }
 
 model FileEntity {
@@ -120,4 +111,29 @@ model FileEntity {
   photoId     String?  @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Listing {
+  id        String        @id @unique
+  price     Int
+  status    ListingStatus
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  seller    User          @relation(fields: [sellerId], references: [id])
+  sellerId  String
+  nft       NFT           @relation(fields: [nftId], references: [id])
+  nftId     String
+  Order     Order[]
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  INACTIVE
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELED
 }

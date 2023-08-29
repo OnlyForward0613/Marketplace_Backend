@@ -1,20 +1,22 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { LoggerMiddleware } from '@common/middleware';
+import { InkRequestMiddleware } from '@common/middleware/ink-request.middleware';
+import { AuthModule } from '@modules/auth';
+import { CollectionModule } from '@modules/collection';
+import { LaunchpadModule } from '@modules/launchpad';
+import { ListingModule } from '@modules/listing';
+import { MarketplaceModule } from '@modules/marketplace';
+import { UserModule } from '@modules/user';
 import { RouterModule } from '@nestjs/core';
+import { RedisModule } from '@redis/redis.module';
+import { CommonModule } from './common';
 import { configuration } from './config';
 import { HealthModule } from './health';
 import { PrismaModule } from './prisma';
-import { CommonModule } from './common';
-import { LoggerMiddleware } from '@common/middleware';
-import { InkRequestMiddleware } from '@common/middleware/ink-request.middleware';
-import { MarketplaceModule } from '@modules/marketplace';
-import { LaunchpadModule } from '@modules/launchpad';
 import { SeaportModule } from './seaport';
-import { RedisModule } from '@redis/redis.module';
-import { AuthModule } from '@modules/auth';
-import { UserModule } from '@modules/user';
-import { CollectionModule } from '@modules/collection';
+import { OrderModule } from '@modules/order';
 
 @Module({
   imports: [
@@ -40,6 +42,14 @@ import { CollectionModule } from '@modules/collection';
         path: 'user',
         module: UserModule,
       },
+      {
+        path: 'listings',
+        module: ListingModule,
+      },
+      {
+        path: 'orders',
+        module: OrderModule,
+      },
     ]),
 
     HealthModule,
@@ -50,8 +60,6 @@ import { CollectionModule } from '@modules/collection';
     UserModule,
     RedisModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule implements NestModule {
   // Global Middleware, Inbound logging

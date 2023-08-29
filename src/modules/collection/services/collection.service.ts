@@ -14,7 +14,10 @@ export class CollectionService {
     // Logic to create a new collection
   }
 
-  async createAttribute(collectionId: string, createAttributeDto: CreateAttributeDto) {
+  async createAttribute(
+    collectionId: string,
+    createAttributeDto: CreateAttributeDto,
+  ) {
     // Logic to create an attribute for a collection
   }
 }
