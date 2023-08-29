@@ -1,6 +1,4 @@
-
-import Prisma from '@prisma/client';
-import { IsArray, IsString, IsEnum } from 'class-validator';
+import { IsString } from 'class-validator';
 export class AvatarDto {
   @IsString()
   url!: string;
