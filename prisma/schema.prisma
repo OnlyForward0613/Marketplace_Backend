@@ -52,7 +52,7 @@ model Photo {
 
 model Order {
   id              String      @id @unique
-  amount          Int
+  price           Int
   status          OrderStatus
   nftId           String
   sellerId        String
@@ -91,6 +91,7 @@ model NFT {
   id           String     @id @unique
   collectionId String
   tokenId      String
+  tokenAddress String
   attributes   Json
   collection   Collection @relation(fields: [collectionId], references: [id])
   Listing      Listing[]
@@ -117,6 +118,7 @@ model Listing {
   id        String        @id @unique
   price     Int
   status    ListingStatus
+  network   Network
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   seller    User          @relation(fields: [sellerId], references: [id])
@@ -124,6 +126,11 @@ model Listing {
   nft       NFT           @relation(fields: [nftId], references: [id])
   nftId     String
   Order     Order[]
+}
+
+enum Network {
+  BNB
+  MAIN
 }
 
 enum ListingStatus {
