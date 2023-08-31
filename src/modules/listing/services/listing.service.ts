@@ -24,11 +24,15 @@ export class ListingService {
       },
     });
   }
-  async postListing(userId: string, { price, nftId }: CreateListingDto) {
+  async postListing(
+    userId: string,
+    { price, nftId, network }: CreateListingDto,
+  ) {
     return this.prismaService.listing.create({
       data: {
         id: this.generatorService.uuid(),
         price,
+        network,
         status: ListingStatus.ACTIVE,
         sellerId: userId,
         nftId,

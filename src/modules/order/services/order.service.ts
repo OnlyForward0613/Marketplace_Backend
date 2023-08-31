@@ -40,7 +40,6 @@ export class OrderService {
         id: this.generatorService.uuid(),
         status: OrderStatus.PENDING,
         sellerId: userId,
-
         ...orderData,
       },
     });

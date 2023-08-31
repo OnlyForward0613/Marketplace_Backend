@@ -7,5 +7,5 @@ export class CreateOrderDto {
   @IsString()
   nftId!: string;
   @IsNumber()
-  amount!: number;
+  price!: number;
 }
