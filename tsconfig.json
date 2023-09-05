@@ -26,7 +26,6 @@
       "@config/*": ["src/config/*"],
       "@common/*": ["src/common/*"],
       "@prisma/*": ["src/prisma/*"],
-
       "@redis/*": ["src/redis/*"],
       "@entities/*": ["src/entities/*"],
       "@app/*": ["src/app/*"]

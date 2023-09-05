@@ -1,5 +1,4 @@
 import { IPayloadUserJwt } from '@common/interfaces';
-import { excludeFieldPrisma } from '@common/prisma-utils';
 import { UserService } from '@modules/user/services/user.service';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
@@ -7,7 +6,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ForbiddenException } from '../../../errors';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtCustomStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private readonly userService: UserService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([

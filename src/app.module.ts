@@ -7,7 +7,6 @@ import { AuthModule } from '@modules/auth';
 import { CollectionModule } from '@modules/collection';
 import { LaunchpadModule } from '@modules/launchpad';
 import { ListingModule } from '@modules/listing';
-import { MarketplaceModule } from '@modules/marketplace';
 import { UserModule } from '@modules/user';
 import { RouterModule } from '@nestjs/core';
 import { RedisModule } from '@redis/redis.module';
@@ -25,10 +24,6 @@ import { OrderModule } from '@modules/order';
       load: [configuration],
     }),
     RouterModule.register([
-      {
-        path: 'marketplace',
-        module: MarketplaceModule,
-      },
       {
         path: 'collection',
         module: CollectionModule,

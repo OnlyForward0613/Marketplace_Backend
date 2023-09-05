@@ -8,7 +8,7 @@ import { UserService } from '@modules/user/services/user.service';
 
 import { AuthController } from './controller/auth.controller';
 import { AuthService, TokenService } from './services';
-import { JwtRefreshTokenStrategy, JwtStrategy } from './strategies';
+import { JwtRefreshTokenStrategy, JwtCustomStrategy } from './strategies';
 
 import { RedisModule } from '@redis/redis.module';
 import { RedisService } from '@redis/redis.service';
@@ -18,7 +18,7 @@ const providers = [
   UserService,
   TokenService,
   JwtRefreshTokenStrategy,
-  JwtStrategy,
+  JwtCustomStrategy,
   RedisService,
 ];
 
