@@ -1,5 +1,4 @@
-import connectRedis from 'connect-redis';
-import session from 'express-session';
+import RedisStore from 'connect-redis';
 import { Redis } from 'ioredis';
 import { RedisE } from './redis.enum';
 
@@ -8,12 +7,12 @@ export const sessionConfig = (
   sessionValue: string,
   secure: boolean,
 ) => {
-  const RedisStore = connectRedis(session);
+  const redisStore = new RedisStore({
+    client: redisClient,
+    ttl: 1000 * 60 * 60 * 24 * 30,
+  });
   return {
-    store: new RedisStore({
-      client: redisClient,
-      ttl: 1000 * 60 * 60 * 24 * 30,
-    }),
+    store: redisStore,
     name: RedisE.REDIS_AUTH_TOKEN_SESSION,
     secret: sessionValue,
     resave: false,
