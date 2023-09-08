@@ -32,5 +32,18 @@ export const config = {
     JWT_EXPIRE_REFRESH_TIME: Number(process.env.JWT_EXPIRE_REFRESH_TIME),
     SESSION_SECRET: process.env.SESSION_SECRET,
   },
-  
+
+  s3Bucket: {
+    AWS_S3_BUCKET_REGION: process.env.AWS_S3_BUCKET_REGION,
+    AWS_S3_ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID,
+    AWS_S3_SECRET_ACCESS_KEY: process.env.AWS_S3_SECRET_ACCESS_KEY,
+    AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
+    AWS_S3_API_VERSION: process.env.AWS_S3_API_VERSION,
+  },
+
+  urls: {
+    infura_url: process.env.INFURA_URL,
+    infura_api_key: process.env.INFURA_API_KEY,
+    infura_secret: process.env.INFURA_SECRET,
+  },
 };

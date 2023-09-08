@@ -144,3 +144,8 @@ enum OrderStatus {
   COMPLETED
   CANCELED
 }
+
+enum CONTRACT_TYPE {
+  ERC721
+  ERC1155
+}
