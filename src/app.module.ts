@@ -14,8 +14,8 @@ import { CommonModule } from './common';
 import { configuration } from './config';
 import { HealthModule } from './health';
 import { PrismaModule } from './prisma';
-import { SeaportModule } from './seaport';
 import { OrderModule } from '@modules/order';
+import { MarketplaceModule } from '@modules/marketplace';
 
 @Module({
   imports: [
@@ -45,15 +45,27 @@ import { OrderModule } from '@modules/order';
         path: 'orders',
         module: OrderModule,
       },
+      {
+        path: 'marketplace',
+        module: MarketplaceModule,
+      },
+      {
+        path: 'collection',
+        module: CollectionModule,
+      },
     ]),
 
     HealthModule,
     CommonModule,
     PrismaModule,
-    SeaportModule,
     AuthModule,
     UserModule,
     RedisModule,
+    ListingModule,
+    OrderModule,
+    LaunchpadModule,
+    MarketplaceModule,
+    CollectionModule,
   ],
 })
 export class AppModule implements NestModule {

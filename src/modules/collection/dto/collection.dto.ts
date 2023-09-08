@@ -19,3 +19,11 @@ export class CreateAttributeDto {
 
   options: string[];
 }
+
+export class NFTCollectionsDto {
+  @IsNotEmpty()
+  walletAddress: string;
+
+  @IsNotEmpty()
+  chainId: string;
+}

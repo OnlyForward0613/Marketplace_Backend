@@ -6,6 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "types": ["jest", "node"],
     "typeRoots": ["./node_modules/@types", "src/@types"],
     "moduleResolution": "node",
