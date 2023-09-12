@@ -21,6 +21,7 @@ model User {
   updatedAt     DateTime     @updatedAt
   Listing       Listing[]
   NFT           NFT[]
+  Offer         Offer[]
 }
 
 model Profile {
@@ -52,7 +53,7 @@ model Photo {
 
 model Order {
   id              String      @id @unique
-  price           Int
+  totalPrice      Int
   status          OrderStatus
   nftId           String
   sellerId        String
@@ -63,6 +64,7 @@ model Order {
   buyer           User?       @relation("buyer", fields: [buyerId], references: [id])
   listing         Listing     @relation(fields: [listingId], references: [id])
   listingId       String
+  orderDate       DateTime
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 }
@@ -91,13 +93,17 @@ model NFT {
   id           String     @id @unique
   collectionId String
   tokenId      String
+  contractId   String
   tokenAddress String
+  type         String
+  price        Int
   attributes   Json
   collection   Collection @relation(fields: [collectionId], references: [id])
   Listing      Listing[]
   Order        Order[]
   User         User?      @relation(fields: [userId], references: [id])
   userId       String?
+  Offer        Offer[]
 }
 
 model FileEntity {
@@ -128,6 +134,16 @@ model Listing {
   Order     Order[]
 }
 
+model Offer {
+  id      Int    @id @default(autoincrement())
+  nft     NFT    @relation(fields: [nftId], references: [id])
+  nftId   String
+  buyer   User   @relation(fields: [buyerId], references: [id])
+  buyerId String
+  price   Float
+  status  String
+}
+
 enum Network {
   BNB
   MAIN
@@ -148,4 +164,10 @@ enum OrderStatus {
 enum CONTRACT_TYPE {
   ERC721
   ERC1155
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
