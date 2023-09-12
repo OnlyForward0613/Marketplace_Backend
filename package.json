@@ -36,6 +36,7 @@
     "postinstall": "husky install"
   },
   "dependencies": {
+    "@infura/sdk": "^2.4.3",
     "@metamask/eth-sig-util": "6.0.0",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "10.0.0",
