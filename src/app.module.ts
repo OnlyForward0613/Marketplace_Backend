@@ -23,37 +23,37 @@ import { MarketplaceModule } from '@modules/marketplace';
       isGlobal: true,
       load: [configuration],
     }),
-    RouterModule.register([
-      {
-        path: 'collection',
-        module: CollectionModule,
-      },
-      {
-        path: 'launchpad',
-        module: LaunchpadModule,
-      },
+    // RouterModule.register([
+    //   {
+    //     path: 'collection',
+    //     module: CollectionModule,
+    //   },
+    //   {
+    //     path: 'launchpad',
+    //     module: LaunchpadModule,
+    //   },
 
-      {
-        path: 'user',
-        module: UserModule,
-      },
-      {
-        path: 'listings',
-        module: ListingModule,
-      },
-      {
-        path: 'orders',
-        module: OrderModule,
-      },
-      {
-        path: 'marketplace',
-        module: MarketplaceModule,
-      },
-      {
-        path: 'collection',
-        module: CollectionModule,
-      },
-    ]),
+    //   {
+    //     path: 'user',
+    //     module: UserModule,
+    //   },
+    //   {
+    //     path: 'listings',
+    //     module: ListingModule,
+    //   },
+    //   {
+    //     path: 'orders',
+    //     module: OrderModule,
+    //   },
+    //   {
+    //     path: 'marketplace',
+    //     module: MarketplaceModule,
+    //   },
+    //   {
+    //     path: 'auth',
+    //     module: AuthModule,
+    //   },
+    // ]),
 
     HealthModule,
     CommonModule,

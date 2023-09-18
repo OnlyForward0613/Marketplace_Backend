@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { compare, hash,  } from 'bcryptjs';
+import { compare, hash } from 'bcryptjs';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
+import { recoverMessageAddress } from 'viem';
+
 
 /** Salt or number of rounds to generate a salt */
 export type Salt = string | number;
@@ -41,11 +43,17 @@ export class TokenService {
     return await hash(token, this.salt);
   }
 
-  async verifySignature(walletAddress: string, signature: string, nonce: string): Promise<boolean>{
-    const recoveredAddress = recoverPersonalSignature({
-      data: hexNonce(nonce),
-      signature,
-    });
+  async verifySignature(walletAddress: string, signature: string): Promise<boolean>{
+    const verifyMsg = 'Connected with Inkubate';
+
+    console.log(signature);
+    // return true;
+    const recoveredAddress = await recoverMessageAddress({
+      message: verifyMsg,
+      signature: Buffer.from(signature.slice(2), 'hex')
+    })
+    
+    console.log(recoveredAddress);
     return walletAddress.toLowerCase() === recoveredAddress.toLowerCase();
   }
 }

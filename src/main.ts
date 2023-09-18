@@ -15,6 +15,8 @@ import { sessionConfig } from '@redis/redis.config';
 import { AppModule } from './app.module';
 import { Logger } from './common';
 import { Config } from './config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
@@ -109,6 +111,18 @@ async function bootstrap() {
       },
     }),
   );
+
+
+  const options = new DocumentBuilder()
+    .setTitle('Your API Title')
+    .setDescription('Your API Description')
+    .setVersion('1.0')
+    .addTag('yourTag')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup('api', app, document);
+
   const port = configService.get('application.PORT');
 
   await app.listen(port, () => {

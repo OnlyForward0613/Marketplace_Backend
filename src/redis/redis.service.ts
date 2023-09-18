@@ -22,7 +22,7 @@ export class RedisService {
     //       host: redisOpts.REDIS_HOST,
     //       port: redisOpts.REDIS_PORT,
     //     });
-    this._redisClient = new Redis(redisOpts.REDIS_URL);
+    this._redisClient = new Redis(6379, "localhost", {password: "pass"});
     this._redisClient.on('ready', () => {
       _logger.log(`redis client is ready: ${this._redisClient.status}`);
     });

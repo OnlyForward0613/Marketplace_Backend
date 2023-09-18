@@ -39,20 +39,32 @@ export class AuthService {
   }
   public async generateNonce({walletAddress}: {walletAddress: string}) {
     const nonce = this.generatorService.generateRandomNonce();
-    const user = await this.prismaService.user.update({where: {walletAddress}, data: {nonce}})
-
+    let users = await this.prismaService.user.findMany({where: {
+      walletAddress
+    }})
+    if (users.length > 0) {
+      const user = await this.prismaService.user.update({where: {walletAddress}, data: {nonce}})
+    } else {
+      await this.userService.createUser({
+        nonce: nonce,
+        username: walletAddress,
+        walletAddress: walletAddress,
+      })
+    }
+  
     return nonce;
   }
   public async signIn(
     { walletAddress, signature }: UserSignInDto,
     refreshTokenId: string,
   ) {
+
     const user = await this.userService.getUserByUniqueInput({
       where: {walletAddress},
     });
     if (!user)
       throw new BadRequestException('Provided credential is not correct');
-    const isValid = await this.tokenService.verifySignature(user.walletAddress, signature, user.nonce);
+    const isValid = await this.tokenService.verifySignature(user.walletAddress, signature);
     if (!isValid)
       throw new BadRequestException('Provided credential is not correct');
     const authTokens = await this.generateAuthToken(

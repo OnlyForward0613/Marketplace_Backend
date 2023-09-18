@@ -21,14 +21,14 @@ export class UserService {
     private redisService: RedisService,
   ) {}
 
-  public async createUser(data: Prisma.UserCreateInput) {
-    return this.prismaService.user.create({
-      data: {
+  public async createUser(data: Omit<Prisma.UserCreateInput, "id">) {
+      return this.prismaService.user.create({
+       data: {
         id: this.generatorService.uuid(),
         ...data,
-      },
-    });
-  }
+       },
+      });
+     }
 
   /* Queries */
   public async getUserByUniqueInput(

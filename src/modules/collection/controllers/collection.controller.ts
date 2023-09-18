@@ -13,8 +13,28 @@ import {
 })
 export class CollectionController {
   constructor(private readonly collectionService: CollectionService) {}
-  @Get()
+  @Get('collections')
   async getCollections() {
     return this.collectionService.getCollections();
+  }
+  @Post()
+  async createCollection(@Body() createCollectionDto: CreateCollectionDto) {
+    return this.collectionService.createCollection(createCollectionDto);
+  }
+
+  @Post(':collectionId/attributes')
+  async createAttribute(
+    @Param('collectionId') collectionId: string,
+    @Body() createAttributeDto: CreateAttributeDto,
+  ) {
+    return this.collectionService.createAttribute(
+      collectionId,
+      createAttributeDto,
+    );
+  }
+
+  @Get('contracts')
+  async getContracts(@Query() query: NFTCollectionsDto) {
+    return this.collectionService.getConts(query);
   }
 }

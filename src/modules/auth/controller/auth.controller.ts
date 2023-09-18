@@ -20,9 +20,10 @@ import Prisma, { User } from '@prisma/client';
 import { ForbiddenException } from '../../../errors';
 import { AuthService } from '../services';
 
-@Controller({
-  version: '1',
-})
+// @Controller({
+//   version: '1',
+// })
+@Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
