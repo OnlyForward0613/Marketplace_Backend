@@ -1,10 +1,13 @@
-import { CurrentUser } from '@common/decorators';
+import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Patch,
+  Post,
   Put,
   UploadedFile,
   UseGuards,
@@ -14,23 +17,28 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '@prisma/client';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { ProfileService } from '../services';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@Controller({ version: '1' })
+const moduleName = 'profile';
+
+@ApiTags(moduleName)
+@Controller(moduleName)
 export class ProfileController {
   constructor(private profileService: ProfileService) {}
 
+  @ApiOperation({ summary: 'Update user profile' })
+  @ApiBody({ type: UpdateProfileDto })
   @UseGuards(AccessTokenGuard)
-  @Patch('update-profile')
+  @Patch()
   async updateProfile(
-    @CurrentUser() actor: User,
+    @CurrentUser() user: User,
     @Body() profileDto: UpdateProfileDto,
   ) {
-    return this.profileService.updateProfile(actor, profileDto);
+    return this.profileService.updateProfile(user.id, profileDto);
   }
 
-
   @UseGuards(AccessTokenGuard)
-  @Get('me')
+  @Get()
   async getProfile(@CurrentUser() actor: User) {
     return this.profileService.getProfile(actor.id);
   }

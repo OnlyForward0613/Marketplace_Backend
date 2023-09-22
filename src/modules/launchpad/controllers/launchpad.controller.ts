@@ -11,15 +11,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from '@common/decorators';
+import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { IPayloadUserJwt } from '@common/interfaces';
 import { LaunchpadService } from '@modules/launchpad/services/launchpad.service';
 import { CreateLaunchpadDto } from '@modules/launchpad/dto/create-launchpad.dto';
 import { GetLaunchpadDto } from '@modules/launchpad/dto/get-launchpad.dto';
 
-@ApiTags('launchpad')
-@Controller('launchpad')
+const moduleName = 'launchpad';
+
+@ApiTags(moduleName)
+@Controller(moduleName)
 export class LaunchpadController {
   constructor(private launchpadService: LaunchpadService) {}
 
@@ -28,7 +30,7 @@ export class LaunchpadController {
   @ApiResponse({ type: GetLaunchpadDto })
   @UseGuards(AccessTokenGuard)
   @Post()
-  async create(
+  async createLaunchpad(
     @CurrentUser() payload: IPayloadUserJwt,
     @Body() launchpadDto: CreateLaunchpadDto,
   ): Promise<GetLaunchpadDto> {
@@ -40,15 +42,16 @@ export class LaunchpadController {
 
   @ApiOperation({ summary: 'Find all launchpad' })
   @ApiResponse({ type: [GetLaunchpadDto] })
+  @Public()
   @Get()
-  async getAll() {
+  async getLaunchpads() {
     return this.launchpadService.getLaunchpads({});
   }
 
   @ApiOperation({ summary: 'Find launchpad by id' })
   @ApiResponse({ type: GetLaunchpadDto })
   @Get(':id')
-  async getById(@Param('id') id: string) {
+  async getLaunchpad(@Param('id') id: string) {
     return this.launchpadService.getLaunchpad({ where: { id: id } });
   }
 
@@ -57,7 +60,7 @@ export class LaunchpadController {
   @ApiResponse({ type: GetLaunchpadDto })
   @UseGuards(AccessTokenGuard)
   @Put(':id')
-  async update(
+  async updateLaunchpad(
     @Param('id') id: string,
     @CurrentUser() payload: IPayloadUserJwt,
     @Body() launchpadDto: CreateLaunchpadDto,
@@ -72,7 +75,7 @@ export class LaunchpadController {
   @ApiResponse({ type: GetLaunchpadDto })
   @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  async delete(
+  async deleteLaunchpad(
     @Param('id') id: string,
     @CurrentUser() payload: IPayloadUserJwt,
   ) {

@@ -1,13 +1,15 @@
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { CreateListingDto } from '../dto/createListing.dto';
 import { ListingService } from '../services/listing.service';
 
-@Controller({
-  version: '1',
-})
+const moduleName = 'listing';
+
+@ApiTags(moduleName)
+@Controller(moduleName)
 export class ListingController {
   constructor(private readonly listingService: ListingService) {}
   @UseGuards(AccessTokenGuard)

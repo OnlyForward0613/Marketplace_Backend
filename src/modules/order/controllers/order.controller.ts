@@ -1,13 +1,15 @@
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 
-@Controller({
-  version: '1',
-})
+const moduleName = 'order';
+
+@ApiTags(moduleName)
+@Controller(moduleName)
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
   @UseGuards(AccessTokenGuard)

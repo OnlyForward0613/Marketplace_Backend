@@ -31,8 +31,10 @@ model Profile {
   avatarId  String?  @unique
   banner    Photo?   @relation("banner", fields: [bannerId], references: [id])
   bannerId  String?  @unique
-  name      String?
-  lastName  String?
+  twitter   String?
+  discord   String?
+  facebook  String?
+  reddit    String?
   User      User     @relation(fields: [userId], references: [id])
   userId    String   @unique
   updatedAt DateTime @updatedAt
@@ -146,6 +148,7 @@ model Launchpad {
   collectionAddress String
   User              User     @relation(fields: [userId], references: [id])
   userId            String   @unique
+  status            String
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

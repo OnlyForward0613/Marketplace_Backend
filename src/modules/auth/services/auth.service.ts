@@ -16,8 +16,10 @@ import { RedisE } from '@redis/redis.enum';
 import { RedisService } from '@redis/redis.service';
 import validator from 'validator';
 import { ForbiddenException, NotFoundException } from '../../../errors';
-import { UserSignInDto } from '../dto/user-connect.dto';
+import { UserSigninDto } from '../dto/signin.dto';
 import { TokenService } from './token.service';
+import { SignupDto } from '../dto/signup.dto';
+
 @Injectable()
 export class AuthService {
   private logger = new Logger(AuthService.name);
@@ -31,7 +33,7 @@ export class AuthService {
     private generatorService: GeneratorService,
   ) {}
 
-  async validateUser({ walletAddress }: UserSignInDto): Promise<boolean> {
+  async validateUser({ walletAddress }: UserSigninDto): Promise<boolean> {
     this.logger.log(`${'*'.repeat(20)} validateUser() ${'*'.repeat(20)}`);
     this.logger.log(walletAddress);
     const user = await this.prismaService.user.findUnique({
@@ -41,9 +43,13 @@ export class AuthService {
     return true;
   }
 
-  public async generateNonce({ walletAddress }: { walletAddress: string }) {
-    this.logger.log(`${'*'.repeat(20)} generateNonce() ${'*'.repeat(20)}`);
-    this.logger.log(walletAddress);
+  public async signUp({ walletAddress }: SignupDto) {
+    this.logger.log(
+      `${'*'.repeat(20)} signUp(${walletAddress}) ${'*'.repeat(20)}`,
+    );
+
+    this.tokenService.verifyWallet(walletAddress);
+
     const nonce = this.generatorService.generateRandomNonce();
     let users = await this.prismaService.user.findMany({
       where: {
@@ -66,22 +72,21 @@ export class AuthService {
     return nonce;
   }
 
-  public async signIn(
-    { walletAddress, signature }: UserSignInDto,
-    refreshTokenId: string,
-  ) {
-    const user = await this.userService.getUserByUniqueInput({
+  public async signIn({ walletAddress, signature }: UserSigninDto) {
+    const user = await this.userService.getUser({
       where: { walletAddress },
     });
-    if (!user)
-      throw new BadRequestException('Provided credential is not correct');
+    if (!user) throw new BadRequestException('Provided credential is invalid');
+
     const isValid = await this.tokenService.verifySignature(
       user.walletAddress,
       user.nonce,
       signature,
     );
     if (!isValid)
-      throw new BadRequestException('Provided credential is not correct');
+      throw new BadRequestException('Provided signature is invalid');
+
+    const refreshTokenId = this.generatorService.createRefreshTokenId();
     const authTokens = await this.generateAuthToken(
       {
         id: user.id,
@@ -107,6 +112,7 @@ export class AuthService {
     return {
       accessToken: await this.createAccessToken(payload),
       refreshToken: await this.createRefreshToken(payload, refreshTokenId),
+      refreshTokenId: refreshTokenId,
     };
   }
 
@@ -145,7 +151,7 @@ export class AuthService {
     refreshToken: string,
     refreshTokenId: string,
   ) {
-    const user = await this.userService.getUserByUniqueInput({
+    const user = await this.userService.getUser({
       where: { id: userId },
     });
     const savedRefreshToken = await this.redisService.client.get(
@@ -169,20 +175,23 @@ export class AuthService {
   public async refreshTokens(
     payload: IPayloadUserJwt,
     sessionAuthToken: ISessionAuthToken,
-    refreshTokenId: string,
   ) {
     if (!payload.id || !payload.walletAddress)
       throw new ForbiddenException('Access denied.');
+
     const user = await this.validateRefreshToken(
       payload.id,
       sessionAuthToken.refreshToken,
       sessionAuthToken.refreshTokenId,
     );
     if (!user) throw new ForbiddenException('refresh_token_expired');
+
+    const refreshTokenId = this.generatorService.createRefreshTokenId();
     return await this.generateAuthToken(payload, refreshTokenId);
   }
+
   async removeJwtRefreshToken(userId: string, refreshTokenId: string) {
-    const user = await this.userService.getUserByUniqueInput({
+    const user = await this.userService.getUser({
       where: { id: userId },
     });
 

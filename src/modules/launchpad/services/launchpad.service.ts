@@ -26,7 +26,7 @@ export class LaunchpadService {
     userId: string,
     data: Omit<
       Prisma.LaunchpadCreateInput,
-      'id' | 'imageUrl' | 'coverUrl' | 'logoUrl' | 'User'
+      'id' | 'imageUrl' | 'coverUrl' | 'logoUrl' | 'status' | 'User'
     >,
   ): Promise<Launchpad> {
     this.logger.log(`User ${userId} is trying to create new launchpad`);
@@ -36,6 +36,7 @@ export class LaunchpadService {
         imageUrl: 'no-image',
         coverUrl: 'no-image',
         logoUrl: 'no-image',
+        status: 'pending',
         id: this.generatorService.uuid(),
         User: {
           connect: {

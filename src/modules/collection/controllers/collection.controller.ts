@@ -1,6 +1,7 @@
 // collection.controller.ts
 
 import { Controller, Post, Body, Param, Get, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CollectionService } from '../services/collection.service';
 import {
   CreateCollectionDto,
@@ -8,9 +9,10 @@ import {
   NFTCollectionsDto,
 } from '../dto/collection.dto';
 
-@Controller({
-  version: '1',
-})
+const moduleName = 'collection';
+
+@ApiTags(moduleName)
+@Controller(moduleName)
 export class CollectionController {
   constructor(private readonly collectionService: CollectionService) {}
   @Get('collections')

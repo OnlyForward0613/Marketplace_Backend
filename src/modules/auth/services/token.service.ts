@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { compare, hash } from 'bcryptjs';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
-import { recoverMessageAddress } from 'viem';
+import { recoverMessageAddress, isHex } from 'viem';
 
 /** Salt or number of rounds to generate a salt */
 export type Salt = string | number;
@@ -58,7 +58,15 @@ export class TokenService {
     this.logger.log('recoveredAddress is ', recoveredAddress);
     return walletAddress.toLowerCase() === recoveredAddress.toLowerCase();
   }
+
+  verifyWallet(walletAddress: string) {
+    const isValid = isHex(walletAddress) && walletAddress.length === 42;
+    if (!isValid)
+      throw new BadRequestException('Provided wallet address is invalid');
+    else return;
+  }
 }
+
 export function hexNonce(nonce: string) {
   return `0x${Buffer.from(nonce).toString('hex')}`;
 }

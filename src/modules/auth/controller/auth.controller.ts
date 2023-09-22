@@ -1,12 +1,3 @@
-import { CurrentUser, Public } from '@common/decorators';
-import { AccessTokenGuard, RefreshTokenGuard } from '@common/guards';
-import {
-  IPayloadUserJwt,
-  IRequestWithUser,
-  ISessionAuthToken,
-} from '@common/interfaces';
-import { GeneratorService } from '@common/providers';
-import { UserSignInDto } from '@modules/auth/dto/user-connect.dto';
 import {
   Body,
   Controller,
@@ -16,41 +7,54 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import Prisma, { User } from '@prisma/client';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CurrentUser, Public } from '@common/decorators';
+import { AccessTokenGuard, RefreshTokenGuard } from '@common/guards';
+import {
+  IPayloadUserJwt,
+  IRequestWithUser,
+  ISessionAuthToken,
+} from '@common/interfaces';
+import { UserSigninDto } from '@modules/auth/dto/signin.dto';
+import { User } from '@prisma/client';
 import { ForbiddenException } from '../../../errors';
 import { AuthService } from '../services';
+import { SignupDto } from '../dto/signup.dto';
 
-@ApiTags('auth')
-@Controller('auth')
+const moduleName = 'auth';
+
+@ApiTags(moduleName)
+@Controller(moduleName)
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private generatorService: GeneratorService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Sign up' })
+  @ApiBody({ type: SignupDto })
   @Public()
-  @Post('nonce')
+  @Post('signup')
   @HttpCode(HttpStatus.OK)
-  async nonce(
-    @Body() data: { walletAddress: string },
-    @Request() req: Request,
-  ) {
-    return this.authService.generateNonce(data);
+  async signUp(@Body() signupDto: SignupDto) {
+    return this.authService.signUp(signupDto);
   }
 
+  @ApiOperation({ summary: 'Sign in' })
+  @ApiBody({ type: UserSigninDto })
   @Public()
   @Post('signin')
   @HttpCode(HttpStatus.OK)
-  async signIn(@Body() data: UserSignInDto, @Request() req: IRequestWithUser) {
-    const refreshTokenId = this.generatorService.createRefreshTokenId();
-    const { accessToken, refreshToken } = await this.authService.signIn(
-      data,
-      refreshTokenId,
-    );
-    req.session.authToken = { accessToken, refreshToken, refreshTokenId };
-    return { accessToken };
+  async signIn(
+    @Body() data: UserSigninDto,
+    @Request() req: IRequestWithUser,
+  ): Promise<string> {
+    const authToken = await this.authService.signIn(data);
+
+    req.session.authToken = authToken;
+
+    return authToken.accessToken;
   }
+
+  @ApiOperation({ summary: 'Sign out' })
+  @Public()
   @Post('signout')
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
@@ -60,10 +64,13 @@ export class AuthController {
     const userId = req.user.id;
     const sessionAuthToken = req.session.authToken;
     await this.authService.signout(userId, sessionAuthToken);
+
     req.session.authToken = undefined;
+
     return { message: 'success' };
   }
 
+  @ApiOperation({ summary: 'Refresh token' })
   @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -74,21 +81,18 @@ export class AuthController {
       walletAddress: user.walletAddress,
     };
     const sessionAuthToken = req.session?.authToken;
-    const refreshTokenId = this.generatorService.createRefreshTokenId();
-    const { accessToken, refreshToken } = await this.authService.refreshTokens(
+    const authToken = await this.authService.refreshTokens(
       payload,
       sessionAuthToken,
-      refreshTokenId,
     );
-    req.session.authToken = {
-      accessToken,
-      refreshToken,
-      refreshTokenId,
-    };
-    return accessToken;
+
+    req.session.authToken = authToken;
+
+    return authToken.accessToken;
   }
 
-  @Post('validate-tokens')
+  @ApiOperation({ summary: 'Validate token' })
+  @Post('validate')
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
   async validateTokens(
@@ -96,12 +100,14 @@ export class AuthController {
     @CurrentUser() user: User,
   ): Promise<User> {
     if (!user) throw new ForbiddenException('unauthorized');
+
     const authTokens: ISessionAuthToken = req.session.authToken;
     await this.authService.validateRefreshToken(
       user.id,
       authTokens.refreshToken,
       authTokens.refreshTokenId,
     );
+
     return user;
   }
 }

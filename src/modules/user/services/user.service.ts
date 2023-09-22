@@ -7,6 +7,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
@@ -15,34 +16,25 @@ import { RedisService } from '@redis/redis.service';
 
 @Injectable()
 export class UserService {
+  private logger = new Logger(UserService.name);
   constructor(
     private prismaService: PrismaService,
     private generatorService: GeneratorService,
     private redisService: RedisService,
   ) {}
 
-  public async createUser(data: Omit<Prisma.UserCreateInput, "id">) {
-      return this.prismaService.user.create({
-       data: {
+  public async createUser(data: Omit<Prisma.UserCreateInput, 'id'>) {
+    return this.prismaService.user.create({
+      data: {
         id: this.generatorService.uuid(),
         ...data,
-       },
-      });
-     }
-
-  /* Queries */
-  public async getUserByUniqueInput(
-    args: Prisma.UserFindUniqueArgs,
-  ): Promise<User> {
-    return await this.prismaService.user.findUnique({ ...args });
+      },
+    });
   }
 
-  public async getUser(
-    args: Prisma.UserFindUniqueArgs,
-  ): Promise<User> {
-    const user = await this.prismaService.user.findUnique({ ...args });
-    if (!user) return null;
-    return user;
+  /* Queries */
+  public async getUser(args: Prisma.UserFindUniqueArgs): Promise<User> {
+    return await this.prismaService.user.findUnique({ ...args });
   }
 
   public async getManyUsers(args: Prisma.UserFindManyArgs): Promise<User[]> {
@@ -71,17 +63,15 @@ export class UserService {
     }
   }
 
-  public async updateUsername(
-    payload: IPayloadUserJwt,
-    { username }: UpdateUsernameDto,
-  ) {
+  public async updateUsername(userId: string, { username }: UpdateUsernameDto) {
     const existingUsername = await this.prismaService.user.findUnique({
       where: { username: username },
     });
     if (existingUsername)
       throw new BadRequestException('username already exists');
+
     const user = await this.prismaService.user.update({
-      where: { id: payload.id },
+      where: { id: userId },
       data: { username },
     });
     // const authTokens = await this.authService.generateAuthToken({
@@ -93,10 +83,10 @@ export class UserService {
     return user;
   }
 
-  public async availableUsername(
-    payload: IPayloadUserJwt,
-    { username }: UpdateUsernameDto,
-  ) {
+  public async availableUsername({ username }: UpdateUsernameDto) {
+    this.logger.log(
+      `${'*'.repeat(20)} availableUsername(${username}) ${'*'.repeat(20)}`,
+    );
     return !(await this.prismaService.user.findUnique({
       where: { username: username },
     }));

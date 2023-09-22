@@ -18,7 +18,7 @@ export class JwtCustomStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   public async validate({ walletAddress }: IPayloadUserJwt) {
-    const user = await this.userService.getUserByUniqueInput({
+    const user = await this.userService.getUser({
       where: { walletAddress },
       include: {
         profile: true,
