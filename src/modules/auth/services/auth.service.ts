@@ -4,12 +4,12 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { IPayloadUserJwt, ISessionAuthToken } from '@common/interfaces';
 import { excludeFieldPrisma } from '@common/prisma-utils';
 import { GeneratorService } from '@common/providers';
 import { UserService } from '@modules/user/services/user.service';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { RedisE } from '@redis/redis.enum';
@@ -20,8 +20,8 @@ import { UserSignInDto } from '../dto/user-connect.dto';
 import { TokenService } from './token.service';
 @Injectable()
 export class AuthService {
+  private logger = new Logger(AuthService.name);
   constructor(
-    private logger = new Logger(AuthService.name),
     private readonly userService: UserService,
     private prismaService: PrismaService,
     private jwtService: JwtService,
@@ -32,13 +32,18 @@ export class AuthService {
   ) {}
 
   async validateUser({ walletAddress }: UserSignInDto): Promise<boolean> {
+    this.logger.log(`${'*'.repeat(20)} validateUser() ${'*'.repeat(20)}`);
+    this.logger.log(walletAddress);
     const user = await this.prismaService.user.findUnique({
       where: { walletAddress },
     });
     // return this.tokenService.compare(password, user.password);
     return true;
   }
+
   public async generateNonce({ walletAddress }: { walletAddress: string }) {
+    this.logger.log(`${'*'.repeat(20)} generateNonce() ${'*'.repeat(20)}`);
+    this.logger.log(walletAddress);
     const nonce = this.generatorService.generateRandomNonce();
     let users = await this.prismaService.user.findMany({
       where: {
@@ -46,7 +51,7 @@ export class AuthService {
       },
     });
     if (users.length > 0) {
-      const user = await this.prismaService.user.update({
+      await this.prismaService.user.update({
         where: { walletAddress },
         data: { nonce },
       });
@@ -60,6 +65,7 @@ export class AuthService {
 
     return nonce;
   }
+
   public async signIn(
     { walletAddress, signature }: UserSignInDto,
     refreshTokenId: string,
@@ -71,6 +77,7 @@ export class AuthService {
       throw new BadRequestException('Provided credential is not correct');
     const isValid = await this.tokenService.verifySignature(
       user.walletAddress,
+      user.nonce,
       signature,
     );
     if (!isValid)

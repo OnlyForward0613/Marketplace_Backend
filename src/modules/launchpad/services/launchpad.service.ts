@@ -1,4 +1,4 @@
-// collection.service.ts
+// launchpad.service.ts
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Prisma, Launchpad } from '@prisma/client';
@@ -7,25 +7,21 @@ import { GeneratorService } from '@common/providers';
 
 @Injectable()
 export class LaunchpadService {
+  private logger = new Logger(LaunchpadService.name);
   constructor(
-    private logger = new Logger(LaunchpadService.name),
-    private readonly prismaService: PrismaService,
     // private readonly web3Service: Web3Service,
+    private readonly prismaService: PrismaService,
     private generatorService: GeneratorService,
   ) {}
 
-  public async getLaunchpads(
-    args: Prisma.LaunchpadFindManyArgs,
-  ): Promise<Launchpad[]> {
+  async getLaunchpads(args: Prisma.LaunchpadFindManyArgs) {
     return await this.prismaService.launchpad.findMany({ ...args });
   }
-
   public async getLaunchpad(
     args: Prisma.LaunchpadFindUniqueArgs,
   ): Promise<Launchpad> {
     return await this.prismaService.launchpad.findUnique({ ...args });
   }
-
   async createLaunchpad(
     userId: string,
     data: Omit<
@@ -49,7 +45,6 @@ export class LaunchpadService {
       },
     });
   }
-
   async updateLaunchpad(
     userId: string,
     args: Prisma.LaunchpadUpdateArgs,
@@ -65,7 +60,6 @@ export class LaunchpadService {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   async deleteLaunchpad(
     userId: string,
     args: Prisma.LaunchpadDeleteArgs,
@@ -79,7 +73,6 @@ export class LaunchpadService {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
   async checkIds(where: Prisma.LaunchpadWhereUniqueInput, userId: string) {
     const launchpad = await this.prismaService.launchpad.findUnique({
       where,

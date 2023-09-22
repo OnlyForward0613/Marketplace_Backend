@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { compare, hash } from 'bcryptjs';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import { recoverMessageAddress } from 'viem';
-
 
 /** Salt or number of rounds to generate a salt */
 export type Salt = string | number;
@@ -11,6 +10,7 @@ export type Salt = string | number;
 const BCRYPT_SALT_VAR = 'application.BCRYPT_SALT';
 const UNDEFINED_SALT_OR_ROUNDS_ERROR = `${BCRYPT_SALT_VAR} is not defined`;
 const SALT_OR_ROUNDS_TYPE_ERROR = `${BCRYPT_SALT_VAR} must be a positive integer or text`;
+const VerifyMsg = 'Connected with Inkubate';
 
 @Injectable()
 export class TokenService {
@@ -19,7 +19,7 @@ export class TokenService {
    * salt will be generated with the specified number of rounds and used
    */
   salt: Salt;
-
+  private logger = new Logger(TokenService.name);
   constructor(private configService: ConfigService) {
     const saltOrRounds = this.configService.get(BCRYPT_SALT_VAR);
     this.salt = parseSalt(saltOrRounds);
@@ -43,22 +43,24 @@ export class TokenService {
     return await hash(token, this.salt);
   }
 
-  async verifySignature(walletAddress: string, signature: string): Promise<boolean>{
-    const verifyMsg = 'Connected with Inkubate';
+  async verifySignature(
+    walletAddress: string,
+    nonce: string,
+    signature: string,
+  ): Promise<boolean> {
+    this.logger.log('signature is ', signature);
 
-    console.log(signature);
-    // return true;
     const recoveredAddress = await recoverMessageAddress({
-      message: verifyMsg,
-      signature: Buffer.from(signature.slice(2), 'hex')
-    })
-    
-    console.log(recoveredAddress);
+      message: `${VerifyMsg}\nnonce:${nonce}`,
+      signature: Buffer.from(signature.slice(2), 'hex'),
+    });
+
+    this.logger.log('recoveredAddress is ', recoveredAddress);
     return walletAddress.toLowerCase() === recoveredAddress.toLowerCase();
   }
 }
 export function hexNonce(nonce: string) {
-  return `0x${Buffer.from(nonce).toString('hex')}`
+  return `0x${Buffer.from(nonce).toString('hex')}`;
 }
 /**
  * Parses a salt environment variable value.

@@ -16,35 +16,33 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import Prisma, { User } from '@prisma/client';
 import { ForbiddenException } from '../../../errors';
 import { AuthService } from '../services';
 
-// @Controller({
-//   version: '1',
-// })
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private generatorService: GeneratorService,
   ) {}
+
   @Public()
   @Post('nonce')
   @HttpCode(HttpStatus.OK)
   async nonce(
-    @Body() data: {walletAddress: string},
+    @Body() data: { walletAddress: string },
     @Request() req: Request,
   ) {
-    return this.authService.generateNonce(data)
+    return this.authService.generateNonce(data);
   }
+
   @Public()
   @Post('signin')
   @HttpCode(HttpStatus.OK)
-  async signIn(
-    @Body() data: UserSignInDto,
-    @Request() req: IRequestWithUser,
-  ) {
+  async signIn(@Body() data: UserSignInDto, @Request() req: IRequestWithUser) {
     const refreshTokenId = this.generatorService.createRefreshTokenId();
     const { accessToken, refreshToken } = await this.authService.signIn(
       data,
@@ -73,7 +71,7 @@ export class AuthController {
     const { user } = req;
     const payload: IPayloadUserJwt = {
       id: user.id,
-      walletAddress: user.walletAddress
+      walletAddress: user.walletAddress,
     };
     const sessionAuthToken = req.session?.authToken;
     const refreshTokenId = this.generatorService.createRefreshTokenId();

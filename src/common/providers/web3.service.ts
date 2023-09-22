@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { NFTCollectionsDto } from '@modules/collection/dto/collection.dto';
 import { HttpService } from '@nestjs/axios';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Network } from '@prisma/client';
 import { firstValueFrom } from 'rxjs';
-import { NFTCollectionsDto } from '@modules/collection/dto/collection.dto';
 import Web3 from 'web3';
 
 @Injectable()

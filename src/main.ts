@@ -68,7 +68,6 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
   if (isProd) {
-    
     app.set('trust proxy', 1); // trust first cookie
     app
       .use(compression())
@@ -112,12 +111,10 @@ async function bootstrap() {
     }),
   );
 
-
   const options = new DocumentBuilder()
-    .setTitle('Your API Title')
-    .setDescription('Your API Description')
+    .setTitle('Inkubate')
+    .setDescription('nft marketplace api on ethereum')
     .setVersion('1.0')
-    .addTag('yourTag')
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
