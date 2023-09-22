@@ -1,12 +1,13 @@
-import { IPayloadUserJwt, ISessionAuthToken } from '@common/interfaces';
-import { excludeFieldPrisma } from '@common/prisma-utils';
-import { GeneratorService } from '@common/providers';
-import { UserService } from '@modules/user/services/user.service';
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
+import { IPayloadUserJwt, ISessionAuthToken } from '@common/interfaces';
+import { excludeFieldPrisma } from '@common/prisma-utils';
+import { GeneratorService } from '@common/providers';
+import { UserService } from '@modules/user/services/user.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
@@ -20,6 +21,7 @@ import { TokenService } from './token.service';
 @Injectable()
 export class AuthService {
   constructor(
+    private logger = new Logger(AuthService.name),
     private readonly userService: UserService,
     private prismaService: PrismaService,
     private jwtService: JwtService,
@@ -29,42 +31,48 @@ export class AuthService {
     private generatorService: GeneratorService,
   ) {}
 
-  async validateUser({walletAddress
-  }: UserSignInDto): Promise<boolean> {
+  async validateUser({ walletAddress }: UserSignInDto): Promise<boolean> {
     const user = await this.prismaService.user.findUnique({
-      where: {walletAddress},
+      where: { walletAddress },
     });
     // return this.tokenService.compare(password, user.password);
     return true;
   }
-  public async generateNonce({walletAddress}: {walletAddress: string}) {
+  public async generateNonce({ walletAddress }: { walletAddress: string }) {
     const nonce = this.generatorService.generateRandomNonce();
-    let users = await this.prismaService.user.findMany({where: {
-      walletAddress
-    }})
+    let users = await this.prismaService.user.findMany({
+      where: {
+        walletAddress,
+      },
+    });
     if (users.length > 0) {
-      const user = await this.prismaService.user.update({where: {walletAddress}, data: {nonce}})
+      const user = await this.prismaService.user.update({
+        where: { walletAddress },
+        data: { nonce },
+      });
     } else {
       await this.userService.createUser({
         nonce: nonce,
         username: walletAddress,
         walletAddress: walletAddress,
-      })
+      });
     }
-  
+
     return nonce;
   }
   public async signIn(
     { walletAddress, signature }: UserSignInDto,
     refreshTokenId: string,
   ) {
-
     const user = await this.userService.getUserByUniqueInput({
-      where: {walletAddress},
+      where: { walletAddress },
     });
     if (!user)
       throw new BadRequestException('Provided credential is not correct');
-    const isValid = await this.tokenService.verifySignature(user.walletAddress, signature);
+    const isValid = await this.tokenService.verifySignature(
+      user.walletAddress,
+      signature,
+    );
     if (!isValid)
       throw new BadRequestException('Provided credential is not correct');
     const authTokens = await this.generateAuthToken(
@@ -77,7 +85,6 @@ export class AuthService {
     return authTokens;
   }
 
-
   public async signout(
     userId: string,
     sessionAuthToken: ISessionAuthToken,
@@ -85,7 +92,6 @@ export class AuthService {
     await this.removeJwtRefreshToken(userId, sessionAuthToken.refreshTokenId);
     return true;
   }
-
 
   public async generateAuthToken(
     payload: IPayloadUserJwt,

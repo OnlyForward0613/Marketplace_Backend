@@ -21,6 +21,7 @@ model User {
   updatedAt     DateTime     @updatedAt
   Listing       Listing[]
   NFT           NFT[]
+  Launchpad     Launchpad?
 }
 
 model Profile {
@@ -126,6 +127,27 @@ model Listing {
   nft       NFT           @relation(fields: [nftId], references: [id])
   nftId     String
   Order     Order[]
+}
+
+model Launchpad {
+  id                String   @id @unique
+  name              String
+  category          String
+  imageUrl          String
+  coverUrl          String
+  logoUrl           String
+  launchDate        Int
+  mintPrice         Int
+  twitter           String
+  discord           String
+  website           String
+  supply            Int
+  royalty           Int
+  collectionAddress String
+  User              User     @relation(fields: [userId], references: [id])
+  userId            String   @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 enum Network {
