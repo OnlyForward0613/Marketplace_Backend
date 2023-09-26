@@ -34,7 +34,7 @@ export class ProfileService {
         data: {
           ...profileDto,
           id: this.generatorService.uuid(),
-          User: {
+          user: {
             connect: {
               id: userId,
             },

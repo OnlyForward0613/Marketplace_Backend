@@ -14,7 +14,7 @@ import { CommonModule } from './common';
 import { configuration } from './config';
 import { HealthModule } from './health';
 import { PrismaModule } from './prisma';
-import { OrderModule } from '@modules/order';
+import { OfferModule } from '@modules/offer';
 import { MarketplaceModule } from '@modules/marketplace';
 
 @Module({
@@ -30,7 +30,7 @@ import { MarketplaceModule } from '@modules/marketplace';
     UserModule,
     RedisModule,
     ListingModule,
-    OrderModule,
+    OfferModule,
     LaunchpadModule,
     MarketplaceModule,
     CollectionModule,
