@@ -76,7 +76,8 @@ export class AuthService {
     const user = await this.userService.getUser({
       where: { walletAddress },
     });
-    if (!user) throw new BadRequestException('Provided credential is invalid');
+    if (!user)
+      throw new BadRequestException('Provided walletAddress is invalid');
 
     const isValid = await this.tokenService.verifySignature(
       user.walletAddress,

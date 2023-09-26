@@ -1,7 +1,7 @@
 // launchpad.service.ts
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { Prisma, Launchpad } from '@prisma/client';
+import { Prisma, Launchpad, LaunchpadStatus } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { GeneratorService } from '@common/providers';
 
@@ -22,23 +22,18 @@ export class LaunchpadService {
   ): Promise<Launchpad> {
     return await this.prismaService.launchpad.findUnique({ ...args });
   }
+
   async createLaunchpad(
     userId: string,
-    data: Omit<
-      Prisma.LaunchpadCreateInput,
-      'id' | 'imageUrl' | 'coverUrl' | 'logoUrl' | 'status' | 'User'
-    >,
+    data: Omit<Prisma.LaunchpadCreateInput, 'id' | 'status' | 'creator'>,
   ): Promise<Launchpad> {
     this.logger.log(`User ${userId} is trying to create new launchpad`);
     return await this.prismaService.launchpad.create({
       data: {
         ...data,
-        imageUrl: 'no-image',
-        coverUrl: 'no-image',
-        logoUrl: 'no-image',
-        status: 'pending',
+        status: LaunchpadStatus.APPLIED,
         id: this.generatorService.uuid(),
-        User: {
+        creator: {
           connect: {
             id: userId,
           },
@@ -46,6 +41,7 @@ export class LaunchpadService {
       },
     });
   }
+
   async updateLaunchpad(
     userId: string,
     args: Prisma.LaunchpadUpdateArgs,
@@ -81,7 +77,7 @@ export class LaunchpadService {
     if (!launchpad)
       throw new HttpException('Invalid user id', HttpStatus.BAD_REQUEST);
     else {
-      if (launchpad.userId !== userId)
+      if (launchpad.creatorId !== userId)
         throw new HttpException('Invalid owner', HttpStatus.NOT_ACCEPTABLE);
       else return;
     }
