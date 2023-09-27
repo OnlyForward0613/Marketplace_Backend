@@ -57,17 +57,7 @@ export class CreateLaunchpadDto {
   imageId?: string;
 
   @ApiProperty({
-    required: false,
-    type: 'string',
-    description: 'Logo url',
-  })
-  @IsString()
-  @IsOptional()
-  logoUrl?: string;
-
-  @ApiProperty({
     required: true,
-    type: 'bigint',
     description: 'Mint price',
   })
   @ApiProperty()
@@ -88,7 +78,7 @@ export class CreateLaunchpadDto {
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Collection metadata resource uri',
+    description: 'Collection uri of metadata',
   })
   @ApiProperty()
   @IsString()
@@ -97,7 +87,6 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
-    type: 'string[]',
     description: 'Owners of launchpad',
   })
   @ApiProperty()
@@ -107,7 +96,6 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
-    type: 'number[]',
     description: 'Owner Royalties of launchpad',
   })
   @ApiProperty()
@@ -147,7 +135,6 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
-    type: 'string[]',
     description: 'WL addresses of the launchpad',
   })
   @ApiProperty()
@@ -187,7 +174,7 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
-    type: 'Network(MAIN | BNB)',
+    type: 'string',
     description: 'network',
   })
   @ApiProperty()
@@ -234,14 +221,4 @@ export class CreateLaunchpadDto {
   @IsString()
   @IsOptional()
   reddit?: string;
-
-  @ApiProperty({
-    required: false,
-    type: 'string',
-    description: 'Collection Id',
-  })
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  collectionId?: string;
 }
