@@ -29,7 +29,8 @@ export class AwsS3Service {
     const fileName = this.generatorService.fileName(
       <string>mime.extension(file.mimetype),
     );
-    const key = 'images/' + fileName;
+    // TODO: should replace prefix to 'images' for deploy version
+    const key = 'images-tmp/' + fileName;
     return await this.s3
       .upload({
         Bucket: this.configService.get('s3Bucket.AWS_S3_BUCKET_NAME'),
