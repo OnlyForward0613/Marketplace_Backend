@@ -1,5 +1,5 @@
-import { IPayloadUserJwt } from '@common/interfaces';
-import { FileUploadService, GeneratorService } from '@common/providers';
+// import { IPayloadUserJwt } from '@common/interfaces';
+import { GeneratorService } from '@common/providers';
 import { UpdateProfileDto } from '@modules/user/dto/update-profile.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { User } from '@prisma/client';
@@ -12,7 +12,6 @@ export class ProfileService {
   constructor(
     private prismaService: PrismaService,
     private userService: UserService,
-    private fileUploadService: FileUploadService,
     private generatorService: GeneratorService,
   ) {}
 
@@ -46,24 +45,6 @@ export class ProfileService {
   public async getProfile(userId: string) {
     return await this.prismaService.profile.findUnique({
       where: { userId },
-    });
-  }
-
-  public async createAvatar(actor: User, file: Express.Multer.File) {
-    const uploaded = await this.fileUploadService.uploadFile(file);
-    return await this.prismaService.profile.update({
-      where: {
-        userId: actor.id,
-      },
-      data: {
-        avatar: {
-          create: {
-            id: this.generatorService.uuid(),
-            url: uploaded.path,
-            fileEntityId: uploaded.id,
-          },
-        },
-      },
     });
   }
 }

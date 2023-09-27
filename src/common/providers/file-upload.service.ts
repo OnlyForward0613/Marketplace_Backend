@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { FileEntity, Prisma } from '@prisma/client';
 
 import { PrismaService } from '@prisma/prisma.service';
-import { nanoid } from 'nanoid';
-import { AwsS3Service } from './asw.service';
+// import { nanoid } from 'nanoid';
+import { AwsS3Service } from './aws.service';
 import { GeneratorService } from './generator.service';
 
 @Injectable()
