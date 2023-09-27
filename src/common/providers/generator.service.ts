@@ -43,21 +43,20 @@ export class GeneratorService {
       .replace(/[^\dA-Za-z]+/g, '')
       .slice(0, Math.max(0, length));
   }
-  /**
+    /**
    * generate random nonce
    * "We use a nonce to make sure your interactions are secure, and it won't cost you anything. It's like an extra lock to keep your online activities safe."
    * @param length
    */
-  public generateRandomNonce(length = 6): string {
-    const characters =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    public generateRandomNonce(length = 6): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let nonce = '';
-
+    
     for (let i = nonce.length; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       nonce += characters.charAt(randomIndex);
     }
 
     return nonce.toUpperCase();
-  }
+    }
 }

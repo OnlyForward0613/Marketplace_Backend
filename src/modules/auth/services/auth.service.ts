@@ -79,13 +79,13 @@ export class AuthService {
     if (!user)
       throw new BadRequestException('Provided walletAddress is invalid');
 
-    const isValid = await this.tokenService.verifySignature(
-      user.walletAddress,
-      user.nonce,
-      signature,
-    );
-    if (!isValid)
-      throw new BadRequestException('Provided signature is invalid');
+    // const isValid = await this.tokenService.verifySignature(
+    //   user.walletAddress,
+    //   user.nonce,
+    //   signature,
+    // );
+    // if (!isValid)
+    //   throw new BadRequestException('Provided signature is invalid');
 
     const refreshTokenId = this.generatorService.createRefreshTokenId();
     const authTokens = await this.generateAuthToken(

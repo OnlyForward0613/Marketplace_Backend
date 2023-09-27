@@ -16,13 +16,7 @@ export class CollectionService {
     private readonly web3Service: Web3Service,
   ) {}
   async getCollections() {
-    return this.prismaService.collection.findMany({
-      include: {
-        avatar: true,
-        banner: true,
-        creator: true,
-      },
-    });
+    return this.prismaService.collection.findMany();
   }
   async createCollection(createCollectionDto: CreateCollectionDto) {
     // Logic to create a new collection

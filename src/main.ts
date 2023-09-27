@@ -17,11 +17,6 @@ import { Logger } from './common';
 import { Config } from './config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
-// @ts-ignore
-BigInt.prototype.toJSON = function () {
-  return this.toString();
-};
-
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,

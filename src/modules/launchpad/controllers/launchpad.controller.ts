@@ -11,12 +11,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Launchpad, Collection } from '@prisma/client';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { IPayloadUserJwt } from '@common/interfaces';
 import { LaunchpadService } from '@modules/launchpad/services/launchpad.service';
 import { CreateLaunchpadDto } from '@modules/launchpad/dto/create-launchpad.dto';
 import { GetLaunchpadDto } from '@modules/launchpad/dto/get-launchpad.dto';
+import { ApplyLaunchpadDto } from '@modules/launchpad/dto/apply-launchpad.dto';
 
 const moduleName = 'launchpad';
 
@@ -32,12 +34,9 @@ export class LaunchpadController {
   @Post()
   async createLaunchpad(
     @CurrentUser() payload: IPayloadUserJwt,
-    @Body() launchpadDto: CreateLaunchpadDto,
-  ): Promise<GetLaunchpadDto> {
-    return await this.launchpadService.createLaunchpad(
-      payload.id,
-      launchpadDto,
-    );
+    @Body() data: CreateLaunchpadDto,
+  ): Promise<Launchpad> {
+    return await this.launchpadService.createLaunchpad(payload.id, data);
   }
 
   @ApiOperation({ summary: 'Find all launchpad' })
@@ -63,10 +62,10 @@ export class LaunchpadController {
   async updateLaunchpad(
     @Param('id') id: string,
     @CurrentUser() payload: IPayloadUserJwt,
-    @Body() launchpadDto: CreateLaunchpadDto,
+    @Body() data: CreateLaunchpadDto,
   ) {
     return this.launchpadService.updateLaunchpad(payload.id, {
-      data: launchpadDto,
+      data: data,
       where: { id: id },
     });
   }
@@ -82,5 +81,13 @@ export class LaunchpadController {
     return this.launchpadService.deleteLaunchpad(payload.id, {
       where: { id: id },
     });
+  }
+
+  @ApiOperation({ summary: 'Apply launchpad', description: 'forbidden' })
+  @ApiBody({ type: ApplyLaunchpadDto })
+  @UseGuards(AccessTokenGuard)
+  @Post('apply')
+  async applyLaunchpad(@Body() data: ApplyLaunchpadDto): Promise<Collection> {
+    return this.launchpadService.applyLaunchpad(data.id);
   }
 }

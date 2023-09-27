@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Network } from '@prisma/client';
-import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
@@ -8,6 +7,7 @@ import {
   IsOptional,
   IsArray,
   IsBoolean,
+  IsDate,
 } from 'class-validator';
 
 export class CreateLaunchpadDto {
@@ -38,42 +38,32 @@ export class CreateLaunchpadDto {
   @IsOptional()
   desc?: string;
 
-  @ApiProperty({
-    required: false,
-    type: 'string',
-    description: 'Logo id',
-  })
-  @IsString()
-  @IsOptional()
-  logoId?: string;
+  // @ApiProperty({
+  //   required: false,
+  //   type: 'string',
+  //   description: 'Logo id',
+  // })
+  // @IsString()
+  // @IsOptional()
+  // logoId?: string;
 
-  @ApiProperty({
-    required: false,
-    type: 'string',
-    description: 'Image id',
-  })
-  @IsString()
-  @IsOptional()
-  imageId?: string;
-
-  @ApiProperty({
-    required: false,
-    type: 'string',
-    description: 'Logo url',
-  })
-  @IsString()
-  @IsOptional()
-  logoUrl?: string;
+  // @ApiProperty({
+  //   required: false,
+  //   type: 'string',
+  //   description: 'Image id',
+  // })
+  // @IsString()
+  // @IsOptional()
+  // imageId?: string;
 
   @ApiProperty({
     required: true,
-    type: 'bigint',
     description: 'Mint price',
   })
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  mintPrice: bigint;
+  mintPrice: string;
 
   @ApiProperty({
     required: true,
@@ -88,16 +78,15 @@ export class CreateLaunchpadDto {
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Collection metadata resource uri',
+    description: 'Base uri of metadata',
   })
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  collectionUri: string;
+  baseUri: string;
 
   @ApiProperty({
     required: true,
-    type: 'string[]',
     description: 'Owners of launchpad',
   })
   @ApiProperty()
@@ -107,7 +96,6 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
-    type: 'number[]',
     description: 'Owner Royalties of launchpad',
   })
   @ApiProperty()
@@ -147,7 +135,6 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
-    type: 'string[]',
     description: 'WL addresses of the launchpad',
   })
   @ApiProperty()
@@ -171,7 +158,7 @@ export class CreateLaunchpadDto {
     description: 'Start date',
   })
   @ApiProperty()
-  @Type(() => Date)
+  @IsString()
   @IsNotEmpty()
   startDate: Date;
 
@@ -181,13 +168,13 @@ export class CreateLaunchpadDto {
     description: 'End date',
   })
   @ApiProperty()
-  @Type(() => Date)
+  @IsString()
   @IsNotEmpty()
   endDate: Date;
 
   @ApiProperty({
     required: true,
-    type: 'Network(MAIN | BNB)',
+    type: 'string',
     description: 'network',
   })
   @ApiProperty()
@@ -234,14 +221,4 @@ export class CreateLaunchpadDto {
   @IsString()
   @IsOptional()
   reddit?: string;
-
-  @ApiProperty({
-    required: false,
-    type: 'string',
-    description: 'Collection Id',
-  })
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  collectionId?: string;
 }
