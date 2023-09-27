@@ -25,23 +25,23 @@ export class UpdateProfileDto {
   @IsOptional()
   bio?: string;
 
-  // @ApiProperty({
-  //   required: false,
-  //   type: 'string',
-  //   description: 'Avatar image id',
-  // })
-  // @IsString()
-  // @IsOptional()
-  // avatarId?: string;
+  @ApiProperty({
+    required: false,
+    type: 'string',
+    description: 'Avatar image id',
+  })
+  @IsString()
+  @IsOptional()
+  avatarId?: string;
 
-  // @ApiProperty({
-  //   required: false,
-  //   type: 'string',
-  //   description: 'Banner image id',
-  // })
-  // @IsString()
-  // @IsOptional()
-  // bannerId?: string;
+  @ApiProperty({
+    required: false,
+    type: 'string',
+    description: 'Banner image id',
+  })
+  @IsString()
+  @IsOptional()
+  bannerId?: string;
 
   @ApiProperty({
     required: false,

@@ -1,9 +1,11 @@
 // launchpad.service.ts
 
+import { GeneratorService } from '@common/providers';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Prisma, Launchpad, LaunchpadStatus } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
-import { GeneratorService } from '@common/providers';
+
+import { CreateLaunchpadDto } from '../dto/create-launchpad.dto';
 
 @Injectable()
 export class LaunchpadService {
@@ -15,30 +17,54 @@ export class LaunchpadService {
   ) {}
 
   async getLaunchpads(args: Prisma.LaunchpadFindManyArgs) {
-    return await this.prismaService.launchpad.findMany({ ...args });
+    return await this.prismaService.launchpad.findMany({
+      include: { image: true, logoImg: true, creator: true },
+      ...args,
+    });
   }
   public async getLaunchpad(
     args: Prisma.LaunchpadFindUniqueArgs,
   ): Promise<Launchpad> {
-    return await this.prismaService.launchpad.findUnique({ ...args });
+    return await this.prismaService.launchpad.findUnique({
+      include: { image: true, logoImg: true, creator: true },
+      ...args,
+    });
   }
 
   async createLaunchpad(
     userId: string,
-    data: Omit<Prisma.LaunchpadCreateInput, 'id' | 'status' | 'creator'>,
+    data: CreateLaunchpadDto,
   ): Promise<Launchpad> {
     this.logger.log(`User ${userId} is trying to create new launchpad`);
     return await this.prismaService.launchpad.create({
       data: {
         ...data,
-        status: LaunchpadStatus.APPLIED,
+        creatorId: undefined,
         id: this.generatorService.uuid(),
+        status: LaunchpadStatus.APPLIED,
         creator: {
           connect: {
             id: userId,
           },
         },
-      },
+        logoImg: data.logoId
+          ? {
+              connect: {
+                id: data.logoId,
+              },
+            }
+          : undefined,
+        image: data.imageId
+          ? {
+              connect: {
+                id: data.imageId,
+              },
+            }
+          : undefined,
+      } as Omit<
+        Prisma.LaunchpadCreateInput,
+        'creatorId' | 'logoId' | 'imageId'
+      >,
     });
   }
 
