@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Network } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
@@ -7,7 +8,6 @@ import {
   IsOptional,
   IsArray,
   IsBoolean,
-  IsDate,
 } from 'class-validator';
 
 export class CreateLaunchpadDto {
@@ -87,6 +87,16 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
+    type: 'string',
+    description: 'Collection metadata resource uri',
+  })
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  collectionUri: string;
+
+  @ApiProperty({
+    required: true,
     type: 'string[]',
     description: 'Owners of launchpad',
   })
@@ -157,21 +167,21 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
-    type: 'Date',
+    type: 'string',
     description: 'Start date',
   })
   @ApiProperty()
-  @IsDate()
+  @Type(() => Date)
   @IsNotEmpty()
   startDate: Date;
 
   @ApiProperty({
     required: true,
-    type: 'Date',
+    type: 'string',
     description: 'End date',
   })
   @ApiProperty()
-  @IsDate()
+  @Type(() => Date)
   @IsNotEmpty()
   endDate: Date;
 

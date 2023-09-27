@@ -2,7 +2,7 @@
 import { GeneratorService } from '@common/providers';
 import { UpdateProfileDto } from '@modules/user/dto/update-profile.dto';
 import { Injectable, Logger } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { UserService } from './user.service';
 
@@ -38,13 +38,34 @@ export class ProfileService {
               id: userId,
             },
           },
-        },
+          avatar: profileDto.avatarId
+            ? {
+                connect: {
+                  id: profileDto.avatarId,
+                },
+              }
+            : undefined,
+          banner: profileDto.bannerId
+            ? {
+                connect: {
+                  id: profileDto.bannerId,
+                },
+              }
+            : undefined,
+        } as Omit<
+          Prisma.ProfileCreateInput,
+          'userId' | 'avatarId' | 'bannerId'
+        >,
       });
   }
 
   public async getProfile(userId: string) {
     return await this.prismaService.profile.findUnique({
       where: { userId },
+      include: {
+        avatar: true,
+        banner: true,
+      },
     });
   }
 }
