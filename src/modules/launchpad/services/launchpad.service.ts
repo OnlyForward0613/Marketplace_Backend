@@ -8,6 +8,7 @@ import {
   MerkleService,
   Web3Service,
 } from '@common/providers';
+import { CreateLaunchpadDto } from '../dto/create-launchpad.dto';
 
 @Injectable()
 export class LaunchpadService {
@@ -20,20 +21,23 @@ export class LaunchpadService {
   ) {}
 
   async getLaunchpads(args: Prisma.LaunchpadFindManyArgs) {
-    return await this.prismaService.launchpad.findMany({ ...args });
+    return await this.prismaService.launchpad.findMany({
+      include: { image: true, logoImg: true, creator: true },
+      ...args,
+    });
   }
   public async getLaunchpad(
     args: Prisma.LaunchpadFindUniqueArgs,
   ): Promise<Launchpad> {
-    return await this.prismaService.launchpad.findUnique({ ...args });
+    return await this.prismaService.launchpad.findUnique({
+      include: { image: true, logoImg: true, creator: true },
+      ...args,
+    });
   }
 
   async createLaunchpad(
     userId: string,
-    data: Omit<
-      Prisma.LaunchpadCreateInput,
-      'id' | 'creatorId' | 'status' | 'creator' | 'logoId'
-    >,
+    data: CreateLaunchpadDto,
   ): Promise<Launchpad> {
     this.logger.log(`User ${userId} is trying to create new launchpad`);
     const launchpad = await this.prismaService.launchpad.create({
@@ -46,7 +50,24 @@ export class LaunchpadService {
             id: userId,
           },
         },
-      },
+        logoImg: data.logoId
+          ? {
+              connect: {
+                id: data.logoId,
+              },
+            }
+          : undefined,
+        image: data.imageId
+          ? {
+              connect: {
+                id: data.imageId,
+              },
+            }
+          : undefined,
+      } as Omit<
+        Prisma.LaunchpadCreateInput,
+        'creatorId' | 'logoId' | 'imageId'
+      >,
     });
 
     this.logger.log(`applying to deploy new launchpad ${launchpad.id}`);
