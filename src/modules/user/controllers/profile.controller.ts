@@ -1,23 +1,11 @@
-import { CurrentUser, Public } from '@common/decorators';
+import { CurrentUser } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Patch,
-  Post,
-  Put,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
+
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { ProfileService } from '../services';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 const moduleName = 'profile';
 
@@ -42,13 +30,4 @@ export class ProfileController {
   async getProfile(@CurrentUser() actor: User) {
     return this.profileService.getProfile(actor.id);
   }
-  // @UseGuards(AccessTokenGuard)
-  // @Put('avatar')
-  // @UseInterceptors(FileInterceptor('file'))
-  // async createAvatar(
-  //   @CurrentUser() actor: User,
-  //   @UploadedFile() file: Express.Multer.File,
-  // ) {
-  //   return this.profileService.createAvatar(actor, file);
-  // }
 }

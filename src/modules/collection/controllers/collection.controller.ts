@@ -1,13 +1,25 @@
 // collection.controller.ts
 
-import { Controller, Post, Body, Param, Get, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Get,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Collection } from '@prisma/client';
 import { CollectionService } from '../services/collection.service';
 import {
   CreateCollectionDto,
   CreateAttributeDto,
   NFTCollectionsDto,
 } from '../dto/collection.dto';
+import { AccessTokenGuard } from '@common/guards';
+import { CurrentUser } from '@common/decorators';
+import { IPayloadUserJwt } from '@common/interfaces';
 
 const moduleName = 'collection';
 
@@ -15,28 +27,38 @@ const moduleName = 'collection';
 @Controller(moduleName)
 export class CollectionController {
   constructor(private readonly collectionService: CollectionService) {}
-  @Get('collections')
-  async getCollections() {
+
+  @ApiOperation({ summary: 'Find all collections' })
+  @ApiResponse({ status: 200, isArray: true })
+  @Get()
+  async getCollections(): Promise<Collection[]> {
     return this.collectionService.getCollections();
   }
+
+  @ApiOperation({ summary: 'Create collection' })
+  @ApiBody({ type: CreateCollectionDto })
+  @UseGuards(AccessTokenGuard)
   @Post()
-  async createCollection(@Body() createCollectionDto: CreateCollectionDto) {
-    return this.collectionService.createCollection(createCollectionDto);
+  async createCollection(
+    @CurrentUser() payload: IPayloadUserJwt,
+    @Body() data: CreateCollectionDto,
+  ) {
+    return this.collectionService.createCollection(payload.id, data);
   }
 
-  @Post(':collectionId/attributes')
+  @ApiOperation({ summary: 'Get collection attributes by id' })
+  @Post(':id/attributes')
   async createAttribute(
-    @Param('collectionId') collectionId: string,
+    @Param('id') id: string,
     @Body() createAttributeDto: CreateAttributeDto,
   ) {
-    return this.collectionService.createAttribute(
-      collectionId,
-      createAttributeDto,
-    );
+    return this.collectionService.createAttribute(id, createAttributeDto);
   }
 
+  @ApiOperation({ summary: 'Get contract' })
+  @ApiBody({ type: NFTCollectionsDto })
   @Get('contracts')
-  async getContracts(@Query() query: NFTCollectionsDto) {
-    return this.collectionService.getConts(query);
+  async getContracts(@Query() data: NFTCollectionsDto) {
+    return this.collectionService.getConts(data);
   }
 }

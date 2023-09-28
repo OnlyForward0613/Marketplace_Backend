@@ -83,11 +83,11 @@ export class LaunchpadController {
     });
   }
 
-  @ApiOperation({ summary: 'Apply launchpad', description: 'forbidden' })
-  @ApiBody({ type: ApplyLaunchpadDto })
-  @UseGuards(AccessTokenGuard)
-  @Post('apply')
-  async applyLaunchpad(@Body() data: ApplyLaunchpadDto): Promise<Collection> {
-    return this.launchpadService.applyLaunchpad(data.id);
-  }
+  // @ApiOperation({ summary: 'Apply launchpad', description: 'forbidden' })
+  // @ApiBody({ type: ApplyLaunchpadDto })
+  // @UseGuards(AccessTokenGuard)
+  // @Post('apply')
+  // async applyLaunchpad(@Body() data: ApplyLaunchpadDto): Promise<Collection> {
+  //   return this.launchpadService.applyLaunchpad(data.id);
+  // }
 }

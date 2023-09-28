@@ -79,25 +79,26 @@ model FileEntity {
 }
 
 model Collection {
-  id        String     @id @unique
-  name      String
-  address   String     @unique
-  avatarId  String?    @unique
-  bannerId  String?    @unique
-  desc      String?
-  website   String?
-  twitter   String?
-  discord   String?
-  network   Network
-  creatorId String
-  verified  Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  creator   User       @relation(fields: [creatorId], references: [id])
-  avatar    Photo?     @relation("avatar", fields: [avatarId], references: [id])
-  banner    Photo?     @relation("banner", fields: [bannerId], references: [id])
-  nfts      NFT[]
-  launchpad Launchpad?
+  id          String     @id @unique
+  name        String
+  address     String     @unique
+  avatarId    String?    @unique
+  bannerId    String?    @unique
+  desc        String?
+  website     String?
+  twitter     String?
+  discord     String?
+  network     Network
+  creatorId   String
+  launchpadId String?    @unique
+  verified    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  creator     User       @relation(fields: [creatorId], references: [id])
+  avatar      Photo?     @relation("avatar", fields: [avatarId], references: [id])
+  banner      Photo?     @relation("banner", fields: [bannerId], references: [id])
+  nfts        NFT[]
+  launchpad   Launchpad? @relation(fields: [launchpadId], references: [id])
 }
 
 model NFT {
@@ -166,9 +167,8 @@ model Launchpad {
   desc                String?
   logoId              String?         @unique
   imageId             String?         @unique
-  mintPrice           String
+  mintPrice           BigInt
   supply              Int
-  baseUri             String
   owners              String[]
   ownerRoyalties      Int[] // permyriad value
   maxPerTx            Int
@@ -184,13 +184,13 @@ model Launchpad {
   facebook            String?
   reddit              String?
   status              LaunchpadStatus
-  collectionId        String?         @unique
+  collectionUri       String
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   creator             User            @relation(fields: [creatorId], references: [id])
   logoImg             Photo?          @relation("logo", fields: [logoId], references: [id])
   image               Photo?          @relation("image", fields: [imageId], references: [id])
-  collection          Collection?     @relation(fields: [collectionId], references: [id])
+  collection          Collection?
 }
 
 model Activity {

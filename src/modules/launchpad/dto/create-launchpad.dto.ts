@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Network } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
@@ -7,7 +8,6 @@ import {
   IsOptional,
   IsArray,
   IsBoolean,
-  IsDate,
 } from 'class-validator';
 
 export class CreateLaunchpadDto {
@@ -38,23 +38,23 @@ export class CreateLaunchpadDto {
   @IsOptional()
   desc?: string;
 
-  // @ApiProperty({
-  //   required: false,
-  //   type: 'string',
-  //   description: 'Logo id',
-  // })
-  // @IsString()
-  // @IsOptional()
-  // logoId?: string;
+  @ApiProperty({
+    required: false,
+    type: 'string',
+    description: 'Logo id',
+  })
+  @IsString()
+  @IsOptional()
+  logoId?: string;
 
-  // @ApiProperty({
-  //   required: false,
-  //   type: 'string',
-  //   description: 'Image id',
-  // })
-  // @IsString()
-  // @IsOptional()
-  // imageId?: string;
+  @ApiProperty({
+    required: false,
+    type: 'string',
+    description: 'Image id',
+  })
+  @IsString()
+  @IsOptional()
+  imageId?: string;
 
   @ApiProperty({
     required: true,
@@ -63,7 +63,7 @@ export class CreateLaunchpadDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  mintPrice: string;
+  mintPrice: bigint;
 
   @ApiProperty({
     required: true,
@@ -78,12 +78,12 @@ export class CreateLaunchpadDto {
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Base uri of metadata',
+    description: 'Collection uri of metadata',
   })
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  baseUri: string;
+  collectionUri: string;
 
   @ApiProperty({
     required: true,
@@ -158,7 +158,7 @@ export class CreateLaunchpadDto {
     description: 'Start date',
   })
   @ApiProperty()
-  @IsString()
+  @Type(() => Date)
   @IsNotEmpty()
   startDate: Date;
 
@@ -168,7 +168,7 @@ export class CreateLaunchpadDto {
     description: 'End date',
   })
   @ApiProperty()
-  @IsString()
+  @Type(() => Date)
   @IsNotEmpty()
   endDate: Date;
 

@@ -15,12 +15,19 @@ export class ListingService {
       where: {
         sellerId: userId,
       },
+      include: {
+        nft: true,
+      },
     });
   }
   async getListingById(listingId) {
     return this.prismaService.listing.findUnique({
       where: {
         id: listingId,
+      },
+      include: {
+        seller: true,
+        nft: true,
       },
     });
   }

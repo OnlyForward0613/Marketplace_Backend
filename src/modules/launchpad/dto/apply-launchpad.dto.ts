@@ -17,7 +17,7 @@ export class DeployLaunchpadDto {
   maxSupply: number;
 
   @IsNotEmpty()
-  mintPrice: string;
+  mintPrice: bigint;
 
   @IsNotEmpty()
   startTime: number;

@@ -135,6 +135,9 @@ export class Web3Service {
       const gas = await this.web3[network].eth.estimateGas(txObj);
       const gasPrice = await this.web3[network].eth.getGasPrice();
 
+      this.logger.log(`gas ${gas}`);
+      this.logger.log(`gas ${gasPrice}`);
+
       const sTx = await this.web3[network].eth.accounts.signTransaction(
         { ...txObj, gas, gasPrice },
         this.account[network].privateKey,
