@@ -7,13 +7,15 @@ import {
   NFTCollectionsDto,
 } from '../dto/collection.dto';
 import { PrismaService } from '@prisma/prisma.service';
-import { Web3Service } from '@common/providers';
+import { GeneratorService, Web3Service } from '@common/providers';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CollectionService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly web3Service: Web3Service,
+    private generatorService: GeneratorService,
   ) {}
   async getCollections() {
     return this.prismaService.collection.findMany({
@@ -24,8 +26,21 @@ export class CollectionService {
       },
     });
   }
-  async createCollection(createCollectionDto: CreateCollectionDto) {
-    // Logic to create a new collection
+  async createCollection(
+    userId: string,
+    data: Omit<Prisma.CollectionCreateInput, 'id' | 'creator'>,
+  ) {
+    return this.prismaService.collection.create({
+      data: {
+        ...data,
+        id: this.generatorService.uuid(),
+        creator: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
   }
 
   async createAttribute(

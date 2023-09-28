@@ -16,6 +16,7 @@ import { HealthModule } from './health';
 import { PrismaModule } from './prisma';
 import { OfferModule } from '@modules/offer';
 import { MarketplaceModule } from '@modules/marketplace';
+import { NftModule } from '@modules/nft';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { MarketplaceModule } from '@modules/marketplace';
     LaunchpadModule,
     MarketplaceModule,
     CollectionModule,
+    NftModule,
   ],
 })
 export class AppModule implements NestModule {
