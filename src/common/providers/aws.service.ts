@@ -36,6 +36,8 @@ export class AwsS3Service {
         Bucket: this.configService.get('s3Bucket.AWS_S3_BUCKET_NAME'),
         Body: file.buffer,
         Key: key,
+        ACL: 'public-read',
+        ContentType: file.mimetype,
       })
       .promise();
   }
