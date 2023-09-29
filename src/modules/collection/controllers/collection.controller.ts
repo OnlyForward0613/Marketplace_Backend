@@ -46,6 +46,12 @@ export class CollectionController {
     return this.collectionService.createCollection(payload.id, data);
   }
 
+  @ApiOperation({ summary: 'Find Collection by id' })
+  @Get(':id')
+  async getCollection(@Param('id') id: string) {
+    return this.collectionService.getCollection({ where: { id: id } });
+  }
+
   @ApiOperation({ summary: 'Get collection attributes by id' })
   @Post(':id/attributes')
   async createAttribute(

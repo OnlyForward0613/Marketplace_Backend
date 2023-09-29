@@ -8,7 +8,7 @@ import {
 } from '../dto/collection.dto';
 import { PrismaService } from '@prisma/prisma.service';
 import { GeneratorService, Web3Service } from '@common/providers';
-import { Prisma } from '@prisma/client';
+import { Collection, Prisma } from '@prisma/client';
 
 @Injectable()
 export class CollectionService {
@@ -40,6 +40,15 @@ export class CollectionService {
           },
         },
       },
+    });
+  }
+
+  public async getCollection(
+    args: Prisma.CollectionFindUniqueArgs,
+  ): Promise<Collection> {
+    return await this.prismaService.collection.findUnique({
+      include: { avatar: true, banner: true, creator: true },
+      ...args,
     });
   }
 
