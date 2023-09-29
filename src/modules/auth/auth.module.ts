@@ -26,7 +26,17 @@ const providers = [
   imports: [
     forwardRef(() => UserModule),
     PassportModule.register({
-      session: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        session: true,
+        defaultStrategy: 'jwt',
+        property: 'user',
+        jwt: {
+          secretOrKey: configService.get('secrets.SESSION_SECRET'),
+          cookieDomain: configService.get('application.HOST'), // set your desired domain here
+        },
+      }),
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

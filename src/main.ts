@@ -32,7 +32,7 @@ async function bootstrap() {
 
   const redisService = app.get<RedisService>(RedisService);
 
-  const prismaService = app.get<PrismaService>(PrismaService);
+  // const prismaService = app.get<PrismaService>(PrismaService);
   const sessionValue = configService.get('secrets.SESSION_SECRET');
   app.setGlobalPrefix('api', {
     exclude: ['/'],
@@ -83,14 +83,11 @@ async function bootstrap() {
           max: 100, // limit each IP to 100 requests per windowMs
         }),
       );
-    // .use(function (req, res, next) {
+    // use(function (req, res, next) {
     // res.header(
     //   'Access-Control-Allow-Origin',
-    //   configService.get('application.CLIENT_URL'),
+    //   'https://inkubate-marketplace-fe.vercel.app',
     // );
-    // res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-    // res.header('Access-Control-Allow-Headers', 'Content-Type');
-
     // res.header(
     //   'Access-Control-Allow-Headers',
     //   'Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept',

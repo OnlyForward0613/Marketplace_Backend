@@ -43,6 +43,9 @@ export class LaunchpadService {
     const launchpad = await this.prismaService.launchpad.create({
       data: {
         ...data,
+        logoId: undefined,
+        imageId: undefined,
+        creatorId: undefined,
         id: this.generatorService.uuid(),
         status: LaunchpadStatus.APPLIED,
         creator: {
@@ -93,8 +96,8 @@ export class LaunchpadService {
         {
           maxSupply: launchpad.supply,
           mintPrice: launchpad.mintPrice,
-          startTime: launchpad.startDate.getTime(),
-          endTime: launchpad.endDate.getTime(),
+          startTime: launchpad.startDate.getTime() / 1000,
+          endTime: launchpad.endDate.getTime() / 1000,
           maxMintAmount: launchpad.maxPerTx,
           maxWalletAmount: launchpad.maxPerWallet,
           creator: user.walletAddress,
