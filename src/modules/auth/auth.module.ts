@@ -8,7 +8,7 @@ import { UserService } from '@modules/user/services/user.service';
 
 import { AuthController } from './controller/auth.controller';
 import { AuthService, TokenService } from './services';
-import { JwtRefreshTokenStrategy, JwtCustomStrategy } from './strategies';
+import { AccessTokenStrategy, RefreshTokenStrategy } from './strategies';
 
 import { RedisModule } from '@redis/redis.module';
 import { RedisService } from '@redis/redis.service';
@@ -17,27 +17,14 @@ const providers = [
   AuthService,
   UserService,
   TokenService,
-  JwtRefreshTokenStrategy,
-  JwtCustomStrategy,
+  AccessTokenStrategy,
+  RefreshTokenStrategy,
   RedisService,
 ];
 
 @Module({
   imports: [
     forwardRef(() => UserModule),
-    PassportModule.register({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        session: true,
-        defaultStrategy: 'jwt',
-        property: 'user',
-        jwt: {
-          secretOrKey: configService.get('secrets.SESSION_SECRET'),
-          cookieDomain: configService.get('application.HOST'), // set your desired domain here
-        },
-      }),
-    }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

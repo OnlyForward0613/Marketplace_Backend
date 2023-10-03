@@ -43,7 +43,7 @@ export class UserController {
   @Get(':id')
   async getById(@Param('id') id: string) {
     const user = await this.userService.getUser({
-      where: { id: id },
+      where: { id },
       include: {
         profile: true,
       },

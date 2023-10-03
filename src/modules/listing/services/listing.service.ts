@@ -1,8 +1,8 @@
-import { GeneratorService } from '@common/providers';
-import { CreateListingDto } from '@modules/listing/dto/createListing.dto';
 import { Injectable } from '@nestjs/common';
 import { ListingStatus } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
+import { GeneratorService } from '@common/providers';
+import { CreateListingDto } from '@modules/listing/dto/createListing.dto';
 
 @Injectable()
 export class ListingService {

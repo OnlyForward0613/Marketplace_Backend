@@ -2,10 +2,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { NFT, Prisma } from '@prisma/client';
 
 import { GeneratorService } from '@common/providers';
-import { CreateNftDto } from '../dto/nft.dto';
+import { CreateNftDto } from '../dto/create-nft.dto';
 
 @Injectable()
 export class NftService {
@@ -14,7 +14,17 @@ export class NftService {
     private generatorService: GeneratorService,
   ) {}
 
-  async getNfts(args: Prisma.NFTFindManyArgs) {
+  async getNft(args: Prisma.NFTFindUniqueOrThrowArgs): Promise<NFT> {
+    return this.prismaService.nFT.findUnique({
+      include: {
+        collection: true,
+        owner: true,
+      },
+      ...args,
+    });
+  }
+
+  async getNfts(args: Prisma.NFTFindManyArgs): Promise<NFT[]> {
     return this.prismaService.nFT.findMany({
       include: {
         collection: true,
@@ -24,7 +34,7 @@ export class NftService {
     });
   }
 
-  async createNft(createNftDto: CreateNftDto) {
+  async createNft(userId: string, createNftDto: CreateNftDto): Promise<NFT> {
     return this.prismaService.nFT.create({
       data: {
         ...createNftDto,
@@ -39,15 +49,15 @@ export class NftService {
         },
         minter: {
           connect: {
-            id: createNftDto.creatorId,
+            id: userId,
           },
         },
         owner: {
           connect: {
-            id: createNftDto.creatorId,
+            id: userId,
           },
         },
-      } as Omit<Prisma.NFTCreateInput, 'collectionId' | 'creatorId'>,
+      } as Omit<Prisma.NFTCreateInput, 'collectionId'>,
     });
   }
 }

@@ -79,41 +79,33 @@ export class AuthService {
     if (!user)
       throw new BadRequestException('Provided walletAddress is invalid');
 
-    const isValid = await this.tokenService.verifySignature(
-      user.walletAddress,
-      user.nonce,
-      signature,
-    );
-    if (!isValid)
-      throw new BadRequestException('Provided signature is invalid');
+    // const isValid = await this.tokenService.verifySignature(
+    //   user.walletAddress,
+    //   user.nonce,
+    //   signature,
+    // );
+    // if (!isValid)
+    //   throw new BadRequestException('Provided signature is invalid');
 
-    const refreshTokenId = this.generatorService.createRefreshTokenId();
-    const authTokens = await this.generateAuthToken(
-      {
-        id: user.id,
-        walletAddress: user.walletAddress,
-      },
-      refreshTokenId,
-    );
+    const authTokens = await this.generateAuthToken({
+      id: user.id,
+      walletAddress: user.walletAddress,
+    });
     return authTokens;
   }
 
   public async signout(
     userId: string,
-    sessionAuthToken: ISessionAuthToken,
+    // sessionAuthToken: ISessionAuthToken,
   ): Promise<boolean> {
-    await this.removeJwtRefreshToken(userId, sessionAuthToken.refreshTokenId);
+    await this.removeJwtRefreshToken(userId);
     return true;
   }
 
-  public async generateAuthToken(
-    payload: IPayloadUserJwt,
-    refreshTokenId: string,
-  ) {
+  public async generateAuthToken(payload: IPayloadUserJwt) {
     return {
       accessToken: await this.createAccessToken(payload),
-      refreshToken: await this.createRefreshToken(payload, refreshTokenId),
-      refreshTokenId: refreshTokenId,
+      refreshToken: await this.createRefreshToken(payload),
     };
   }
 
@@ -125,10 +117,7 @@ export class AuthService {
     });
   }
 
-  public async createRefreshToken(
-    payload: IPayloadUserJwt,
-    refreshTokenId: string,
-  ) {
+  public async createRefreshToken(payload: IPayloadUserJwt) {
     const secrets = this.configService.get('secrets');
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: secrets.JWT_REFRESH_PRIVATE_KEY,
@@ -136,7 +125,7 @@ export class AuthService {
     });
     const hashedRefreshToken = await this.tokenService.hash(refreshToken);
     await this.redisService.client.setex(
-      `${RedisE.REDIS_REFRESH_TOKEN}:${payload.id}:${refreshTokenId}`,
+      `${RedisE.REDIS_REFRESH_TOKEN}:${payload.id}`,
       secrets.JWT_EXPIRE_REFRESH_TIME,
       hashedRefreshToken,
       (err, res) => {
@@ -147,17 +136,15 @@ export class AuthService {
     );
     return refreshToken;
   }
-  public async validateRefreshToken(
-    userId: string,
-    refreshToken: string,
-    refreshTokenId: string,
-  ) {
+  public async validateRefreshToken(userId: string, refreshToken: string) {
     const user = await this.userService.getUser({
       where: { id: userId },
     });
     const savedRefreshToken = await this.redisService.client.get(
-      `${RedisE.REDIS_REFRESH_TOKEN}:${userId}:${refreshTokenId}`,
+      `${RedisE.REDIS_REFRESH_TOKEN}:${userId}`,
     );
+    console.log('1', savedRefreshToken);
+    console.log('2', refreshToken);
     if (!savedRefreshToken) {
       throw new NotFoundException('The refresh token was not found.');
     }
@@ -173,31 +160,23 @@ export class AuthService {
     }
   }
 
-  public async refreshTokens(
-    payload: IPayloadUserJwt,
-    sessionAuthToken: ISessionAuthToken,
-  ) {
+  public async refreshTokens(payload: IPayloadUserJwt, refreshToken: string) {
     if (!payload.id || !payload.walletAddress)
       throw new ForbiddenException('Access denied.');
 
-    const user = await this.validateRefreshToken(
-      payload.id,
-      sessionAuthToken.refreshToken,
-      sessionAuthToken.refreshTokenId,
-    );
+    const user = await this.validateRefreshToken(payload.id, refreshToken);
     if (!user) throw new ForbiddenException('refresh_token_expired');
 
-    const refreshTokenId = this.generatorService.createRefreshTokenId();
-    return await this.generateAuthToken(payload, refreshTokenId);
+    return await this.generateAuthToken(payload);
   }
 
-  async removeJwtRefreshToken(userId: string, refreshTokenId: string) {
+  async removeJwtRefreshToken(userId: string) {
     const user = await this.userService.getUser({
       where: { id: userId },
     });
 
     const deletedResult = await this.redisService.client.del(
-      `${RedisE.REDIS_REFRESH_TOKEN}:${userId}:${refreshTokenId}`,
+      `${RedisE.REDIS_REFRESH_TOKEN}:${userId}`,
     );
 
     if (deletedResult === 1) {
