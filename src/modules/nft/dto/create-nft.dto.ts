@@ -81,19 +81,9 @@ export class CreateNftDto {
 
   @ApiProperty({
     required: true,
-    type: 'string',
     description: 'Nft metadata attributes JSON',
   })
   @ApiProperty()
   @IsNotEmpty()
   attributes: object;
-
-  @ApiProperty({
-    required: true,
-    type: 'string',
-    description: 'Creator Id',
-  })
-  @IsString()
-  @IsNotEmpty()
-  creatorId: string;
 }
