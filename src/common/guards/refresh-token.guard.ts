@@ -2,7 +2,7 @@ import {
   ExecutionContext,
   Injectable,
   Logger,
-  UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { StrategyToken } from './strategy.enum';
@@ -17,7 +17,7 @@ export class RefreshTokenGuard extends AuthGuard(StrategyToken.JWT_REFRESH) {
     // You can throw an exception based on either "info" or "err" arguments\
     if (err || !user) {
       this.logger.error(info);
-      throw new UnauthorizedException('refresh_token');
+      throw new NotFoundException('Token is invalid');
     }
     return user;
   }

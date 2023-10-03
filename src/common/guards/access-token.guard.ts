@@ -34,7 +34,7 @@ export class AccessTokenGuard extends AuthGuard(StrategyToken.JWT) {
   handleRequest<TUser = any>(err: any, user: any, info: any): TUser {
     if (err || !user) {
       this.logger.error(info);
-      throw err || new ForbiddenException(err);
+      throw err || new ForbiddenException(info);
     }
     return user;
   }
