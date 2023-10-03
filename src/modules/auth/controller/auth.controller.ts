@@ -82,14 +82,9 @@ export class AuthController {
   @Post('validate')
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
-  async validateTokens(
-    @Request() req: IRequestWithUser,
-    @CurrentUser() user: User,
-  ): Promise<User> {
-    if (!user) throw new ForbiddenException('unauthorized');
-    const refreshToken = req.get('Authorization').replace('Bearer', '').trim();
-    await this.authService.validateRefreshToken(user.id, refreshToken);
-
+  async validateToken(@CurrentUser() user: User): Promise<User> {
+    if (!user) throw new ForbiddenException('Unauthorized');
+    await this.authService.validateAccessToken(user.id);
     return user;
   }
 }

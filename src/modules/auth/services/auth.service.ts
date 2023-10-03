@@ -79,13 +79,13 @@ export class AuthService {
     if (!user)
       throw new BadRequestException('Provided walletAddress is invalid');
 
-    // const isValid = await this.tokenService.verifySignature(
-    //   user.walletAddress,
-    //   user.nonce,
-    //   signature,
-    // );
-    // if (!isValid)
-    //   throw new BadRequestException('Provided signature is invalid');
+    const isValid = await this.tokenService.verifySignature(
+      user.walletAddress,
+      user.nonce,
+      signature,
+    );
+    if (!isValid)
+      throw new BadRequestException('Provided signature is invalid');
 
     const authTokens = await this.generateAuthToken({
       id: user.id,
@@ -94,10 +94,7 @@ export class AuthService {
     return authTokens;
   }
 
-  public async signout(
-    userId: string,
-    // sessionAuthToken: ISessionAuthToken,
-  ): Promise<boolean> {
+  public async signout(userId: string): Promise<boolean> {
     await this.removeJwtRefreshToken(userId);
     return true;
   }
@@ -136,6 +133,16 @@ export class AuthService {
     );
     return refreshToken;
   }
+
+  public async validateAccessToken(userId: string) {
+    const savedRefreshToken = await this.redisService.client.get(
+      `${RedisE.REDIS_REFRESH_TOKEN}:${userId}`,
+    );
+    if (!savedRefreshToken) {
+      throw new NotFoundException('Token is invalid');
+    }
+  }
+
   public async validateRefreshToken(userId: string, refreshToken: string) {
     const user = await this.userService.getUser({
       where: { id: userId },
@@ -143,10 +150,8 @@ export class AuthService {
     const savedRefreshToken = await this.redisService.client.get(
       `${RedisE.REDIS_REFRESH_TOKEN}:${userId}`,
     );
-    console.log('1', savedRefreshToken);
-    console.log('2', refreshToken);
     if (!savedRefreshToken) {
-      throw new NotFoundException('The refresh token was not found.');
+      throw new NotFoundException('Token is invalid');
     }
     const isMatched = await this.tokenService.compare(
       refreshToken,
