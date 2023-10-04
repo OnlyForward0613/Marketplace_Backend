@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { compare, hash } from 'bcryptjs';
+import * as argon2 from 'argon2';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import { recoverMessageAddress, isHex } from 'viem';
 
@@ -32,7 +32,7 @@ export class TokenService {
    * @returns whether the token match the encrypted token
    */
   async compare(token: string, encrypted: string): Promise<boolean> {
-    return await compare(token, encrypted);
+    return await argon2.verify(token, encrypted);
   }
 
   /**
@@ -40,7 +40,7 @@ export class TokenService {
    * @return encrypted token
    */
   async hash(token: string): Promise<string> {
-    return await hash(token, this.salt);
+    return await argon2.hash(token);
   }
 
   async verifySignature(
