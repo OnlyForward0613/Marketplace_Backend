@@ -10,7 +10,8 @@ export class ListingService {
     private readonly prismaService: PrismaService,
     private readonly generatorService: GeneratorService,
   ) {}
-  async getListings(userId: string) {
+
+  async getListingsByUser(userId: string) {
     return this.prismaService.listing.findMany({
       where: {
         sellerId: userId,
@@ -20,6 +21,7 @@ export class ListingService {
       },
     });
   }
+
   async getListingById(listingId) {
     return this.prismaService.listing.findUnique({
       where: {
@@ -31,6 +33,7 @@ export class ListingService {
       },
     });
   }
+
   async postListing(
     userId: string,
     { price, nftId, network }: CreateListingDto,

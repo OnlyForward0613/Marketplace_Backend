@@ -1,5 +1,3 @@
-// collection.dto.ts
-
 import { ApiProperty } from '@nestjs/swagger';
 import { Network } from '@prisma/client';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
