@@ -1,22 +1,24 @@
+import { RouterModule } from '@nestjs/core';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { RedisModule } from '@redis/redis.module';
 
 import { LoggerMiddleware } from '@common/middleware';
 import { InkRequestMiddleware } from '@common/middleware/ink-request.middleware';
+import { ActivityModule } from '@modules/activity';
 import { AuthModule } from '@modules/auth';
 import { CollectionModule } from '@modules/collection';
 import { LaunchpadModule } from '@modules/launchpad';
 import { ListingModule } from '@modules/listing';
 import { UserModule } from '@modules/user';
-import { RouterModule } from '@nestjs/core';
-import { RedisModule } from '@redis/redis.module';
+import { OfferModule } from '@modules/offer';
+import { MarketplaceModule } from '@modules/marketplace';
+import { NftModule } from '@modules/nft';
+
 import { CommonModule } from './common';
 import { configuration } from './config';
 import { HealthModule } from './health';
 import { PrismaModule } from './prisma';
-import { OfferModule } from '@modules/offer';
-import { MarketplaceModule } from '@modules/marketplace';
-import { NftModule } from '@modules/nft';
 
 @Module({
   imports: [
@@ -24,18 +26,19 @@ import { NftModule } from '@modules/nft';
       isGlobal: true,
       load: [configuration],
     }),
-    HealthModule,
-    CommonModule,
-    PrismaModule,
+    ActivityModule,
     AuthModule,
-    UserModule,
-    RedisModule,
-    ListingModule,
-    OfferModule,
-    LaunchpadModule,
-    MarketplaceModule,
     CollectionModule,
+    CommonModule,
+    HealthModule,
+    LaunchpadModule,
+    ListingModule,
+    MarketplaceModule,
     NftModule,
+    OfferModule,
+    PrismaModule,
+    RedisModule,
+    UserModule,
   ],
 })
 export class AppModule implements NestModule {

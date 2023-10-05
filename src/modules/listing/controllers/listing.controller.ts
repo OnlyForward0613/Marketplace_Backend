@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { User } from '@prisma/client';
@@ -12,11 +12,14 @@ const moduleName = 'listing';
 @Controller(moduleName)
 export class ListingController {
   constructor(private readonly listingService: ListingService) {}
+
+  @ApiOperation({ summary: 'Get NFT listings by user', description: '' })
   @UseGuards(AccessTokenGuard)
-  @Get()
-  async getListings(@CurrentUser() actor: User) {
-    return this.listingService.getListings(actor.id);
+  @Get('user')
+  async getListingsByUser(@CurrentUser() actor: User) {
+    return this.listingService.getListingsByUser(actor.id);
   }
+
   @UseGuards(AccessTokenGuard)
   @Post()
   async postListing(
@@ -25,6 +28,7 @@ export class ListingController {
   ) {
     return this.listingService.postListing(actor.id, listingData);
   }
+
   @UseGuards(AccessTokenGuard)
   @Get()
   async getListingById({ listingId }: { listingId: string }) {

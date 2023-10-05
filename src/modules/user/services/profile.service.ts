@@ -33,6 +33,9 @@ export class ProfileService {
         data: {
           ...profileDto,
           id: this.generatorService.uuid(),
+          userId: undefined,
+          avatarId: undefined,
+          bannerId: undefined,
           user: {
             connect: {
               id: userId,

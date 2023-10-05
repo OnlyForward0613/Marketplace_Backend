@@ -1,5 +1,3 @@
-// collection.service.ts
-
 import { GeneratorService } from '@common/providers';
 import { Injectable } from '@nestjs/common';
 import { OfferStatus } from '@prisma/client';
@@ -18,6 +16,9 @@ export class OfferService {
       where: {
         sellerId: userId,
       },
+      include: {
+        nft: true,
+      },
     });
   }
   async getBuyOffers(userId: string) {
@@ -25,12 +26,18 @@ export class OfferService {
       where: {
         buyerId: userId,
       },
+      include: {
+        nft: true,
+      },
     });
   }
-  async getOfferById(offerId: string) {
-    return this.prismaService.offer.findUnique({
+  async getOfferByNftId(nftId: string) {
+    return this.prismaService.offer.findMany({
       where: {
-        id: offerId,
+        nftId,
+      },
+      include: {
+        buyer: true,
       },
     });
   }

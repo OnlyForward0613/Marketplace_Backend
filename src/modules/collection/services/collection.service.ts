@@ -1,5 +1,3 @@
-// collection.service.ts
-
 import { Injectable } from '@nestjs/common';
 import {
   CreateCollectionDto,
