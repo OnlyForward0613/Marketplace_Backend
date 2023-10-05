@@ -21,7 +21,7 @@ export class OfferController {
   }
 
   @ApiOperation({ summary: 'Get NFT offers by buyer', description: '' })
-  @Public()
+  @UseGuards(AccessTokenGuard)
   @Get('buy')
   async getBuyOffers(@CurrentUser() actor: User) {
     return this.offerService.getBuyOffers(actor.id);
