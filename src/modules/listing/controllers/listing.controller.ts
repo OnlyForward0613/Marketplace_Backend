@@ -1,10 +1,20 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from '@common/decorators';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { User } from '@prisma/client';
-import { CreateListingDto } from '../dto/createListing.dto';
+import { CreateListingDto } from '../dto/create-listing.dto';
 import { ListingService } from '../services/listing.service';
+import { CancelListingDto } from '../dto/cancel-listing.dto';
+import { ListingDto } from '../dto/listing.dto';
 
 const moduleName = 'listing';
 
@@ -13,25 +23,86 @@ const moduleName = 'listing';
 export class ListingController {
   constructor(private readonly listingService: ListingService) {}
 
-  @ApiOperation({ summary: 'Get NFT listings by user', description: '' })
-  @UseGuards(AccessTokenGuard)
-  @Get('user')
-  async getListingsByUser(@CurrentUser() actor: User) {
-    return this.listingService.getListingsByUser(actor.id);
+  @ApiOperation({ summary: 'Get all listings' })
+  @Public()
+  @Get()
+  async getAllListings() {
+    return this.listingService.getListings({
+      where: {},
+      include: {
+        seller: true,
+        nft: true,
+      },
+    });
   }
 
+  @ApiOperation({
+    summary: 'Get listings by user id',
+    description: 'forbidden',
+  })
+  @UseGuards(AccessTokenGuard)
+  @Get('mine')
+  async getListingsByUser(@CurrentUser() user: User) {
+    return this.listingService.getListings({
+      where: { sellerId: user.id },
+      include: {
+        nft: true,
+      },
+    });
+  }
+
+  @ApiOperation({ summary: 'Get listing by nft id', description: 'forbidden' })
+  @UseGuards(AccessTokenGuard)
+  @Get('nft/:id')
+  async getListingsByNftId(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.listingService.getListing({
+      where: { nftId: id, sellerId: user.id },
+      include: {
+        nft: true,
+      },
+    });
+  }
+
+  @ApiOperation({ summary: 'Get listing by id' })
+  @Public()
+  @Get(':id')
+  async getListingById(@Param('id') id: string) {
+    return this.listingService.getListing({
+      where: { id },
+      include: {
+        seller: true,
+        nft: true,
+      },
+    });
+  }
+
+  @ApiOperation({ summary: 'List nft', description: 'forbidden' })
+  @ApiBody({ type: CreateListingDto })
   @UseGuards(AccessTokenGuard)
   @Post()
-  async postListing(
-    @CurrentUser() actor: User,
-    @Body() listingData: CreateListingDto,
+  async createListing(
+    @CurrentUser() user: User,
+    @Body() data: CreateListingDto,
   ) {
-    return this.listingService.postListing(actor.id, listingData);
+    return this.listingService.createListing(user.id, data);
   }
 
+  @ApiOperation({ summary: 'Cancel nft', description: 'forbidden' })
+  @ApiBody({ type: CancelListingDto })
   @UseGuards(AccessTokenGuard)
-  @Get()
-  async getListingById({ listingId }: { listingId: string }) {
-    return this.listingService.getListingById(listingId);
+  @Delete()
+  async cancelListing(
+    @CurrentUser() user: User,
+    @Body() data: CancelListingDto,
+  ) {
+    return this.listingService.cancelListing(user.id, data);
+  }
+
+  @ApiOperation({ summary: 'Buy nft', description: 'forbidden' })
+  @ApiBody({ type: ListingDto })
+  @UseGuards(AccessTokenGuard)
+  @Post('buy')
+  async buyListing(@CurrentUser() user: User, @Body() data: ListingDto) {
+    return this.listingService.buyListing(user.id, data);
   }
 }
