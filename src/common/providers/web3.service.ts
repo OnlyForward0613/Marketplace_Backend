@@ -6,9 +6,18 @@ import { Network } from '@prisma/client';
 import { firstValueFrom } from 'rxjs';
 import Web3, { Contract } from 'web3';
 import { Web3Account } from 'web3-eth-accounts';
-import { LAUNCHPAD_ABI } from '@config/abi';
-import { LAUNCHPAD_ADDRESS } from '@config/address';
+import abiDecoder from 'abi-decoder';
+import {
+  FULFILLADVANCEDORDER_ABI,
+  INKUBATE_ABI,
+  LAUNCHPAD_ABI,
+} from '@config/abi';
+import { INKUBATE_ADDRESS, LAUNCHPAD_ADDRESS } from '@config/address';
 import { DeployLaunchpadDto } from '@modules/launchpad/dto/apply-launchpad.dto';
+import { CancelListingDto } from '@modules/listing/dto/cancel-listing.dto';
+import { ListingDto } from '@modules/listing/dto/listing.dto';
+import { utils } from 'ethers';
+import { OrderParameters } from '@common/types';
 
 @Injectable()
 export class Web3Service {
@@ -16,6 +25,7 @@ export class Web3Service {
   private readonly infuraCred: string;
   private readonly web3: Record<Network, Web3>;
   private account: Record<Network, Web3Account>;
+  private inkubateContract: Record<Network, Contract<typeof INKUBATE_ABI>>;
   private launchpadContract: Record<Network, Contract<typeof LAUNCHPAD_ABI>>;
   constructor(
     private readonly configService: ConfigService,
@@ -36,11 +46,6 @@ export class Web3Service {
       ),
     };
 
-    this.launchpadContract = {
-      MAIN: new this.web3.MAIN.eth.Contract(LAUNCHPAD_ABI, LAUNCHPAD_ADDRESS),
-      BNB: new this.web3.BNB.eth.Contract(LAUNCHPAD_ABI, LAUNCHPAD_ADDRESS),
-    };
-
     this.account = {
       MAIN: this.web3.MAIN.eth.accounts.privateKeyToAccount(
         `0x${this.configService.get('credential.ACCOUNT_PRIVATE_KEY')}`,
@@ -50,11 +55,25 @@ export class Web3Service {
       ),
     };
 
+    this.inkubateContract = {
+      MAIN: new this.web3.MAIN.eth.Contract(INKUBATE_ABI, INKUBATE_ADDRESS),
+      BNB: new this.web3.BNB.eth.Contract(INKUBATE_ABI, INKUBATE_ADDRESS),
+    };
+
+    this.launchpadContract = {
+      MAIN: new this.web3.MAIN.eth.Contract(LAUNCHPAD_ABI, LAUNCHPAD_ADDRESS),
+      BNB: new this.web3.BNB.eth.Contract(LAUNCHPAD_ABI, LAUNCHPAD_ADDRESS),
+    };
+
     this.launchpadContract.MAIN.setProvider(this.web3.MAIN.currentProvider);
   }
 
   async getBalance(network: Network, address: string): Promise<bigint> {
     return this.web3[network].eth.getBalance(address);
+  }
+
+  async getTransaction(network: Network, transactionHash: string) {
+    return await this.web3[network].eth.getTransaction(transactionHash);
   }
 
   async getERC721Contracts() {
@@ -165,6 +184,42 @@ export class Web3Service {
       } else return '';
     } catch (e) {
       this.logger.error(e);
+    }
+  }
+
+  async cancelListing({ network, transactionHash }: CancelListingDto) {
+    const transaction = await this.getTransaction(network, transactionHash);
+    const methodId = '0xfd9f1e10';
+    if (!transaction.input || transaction.input.search(methodId) === -1) return;
+    // const encodeParams = transaction.data.split(methodId)[1];
+    // const decodeParmas = this.web3[network].eth.abi.decodeParameters(
+    //   INKUBATE_ABI,
+    //   encodeParams,
+    // );
+    // console.log(decodeParmas);
+    // abiDecoder.addABI(INKUBATE_ABI);
+    // const decodedInput = abiDecoder.decodeMethod(transaction.input);
+    return { from: transaction.from };
+  }
+
+  async buyListing({ network, transactionHash }: ListingDto) {
+    let orderParameters: OrderParameters = {} as OrderParameters;
+    const transaction = await this.getTransaction(network, transactionHash);
+    const methodId = this.web3[network].eth.abi.encodeFunctionSignature(
+      FULFILLADVANCEDORDER_ABI,
+    );
+    if (!transaction.input || transaction.input.search(methodId) === -1)
+      return { orderParameters, error: 'Invalid transaction hash' };
+    try {
+      const params = this.web3[network].eth.abi.decodeParameters(
+        FULFILLADVANCEDORDER_ABI.inputs,
+        transaction.data.split(methodId)[1],
+      );
+      orderParameters = params['0']['parameters'];
+      return { orderParameters, error: '' };
+    } catch (e) {
+      this.logger.error(e);
+      return { orderParameters, error: e };
     }
   }
 }
