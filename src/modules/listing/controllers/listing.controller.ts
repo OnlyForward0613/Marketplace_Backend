@@ -13,7 +13,6 @@ import { AccessTokenGuard } from '@common/guards';
 import { User } from '@prisma/client';
 import { CreateListingDto } from '../dto/create-listing.dto';
 import { ListingService } from '../services/listing.service';
-import { CancelListingDto } from '../dto/cancel-listing.dto';
 import { ListingDto } from '../dto/listing.dto';
 
 const moduleName = 'listing';
@@ -88,12 +87,12 @@ export class ListingController {
   }
 
   @ApiOperation({ summary: 'Cancel nft', description: 'forbidden' })
-  @ApiBody({ type: CancelListingDto })
+  @ApiBody({ type: ListingDto })
   @UseGuards(AccessTokenGuard)
   @Delete()
   async cancelListing(
     @CurrentUser() user: User,
-    @Body() data: CancelListingDto,
+    @Body() data: ListingDto,
   ) {
     return this.listingService.cancelListing(user.id, data);
   }

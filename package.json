@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "engines": {
-    "node": "^16"
+    "node": "^18"
   },
   "scripts": {
     "prebuild": "rm -rf ./dist",

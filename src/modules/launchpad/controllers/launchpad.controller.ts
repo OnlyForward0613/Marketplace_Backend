@@ -18,7 +18,6 @@ import { IPayloadUserJwt } from '@common/interfaces';
 import { LaunchpadService } from '@modules/launchpad/services/launchpad.service';
 import { CreateLaunchpadDto } from '@modules/launchpad/dto/create-launchpad.dto';
 import { GetLaunchpadDto } from '@modules/launchpad/dto/get-launchpad.dto';
-import { ApplyLaunchpadDto } from '@modules/launchpad/dto/apply-launchpad.dto';
 
 const moduleName = 'launchpad';
 

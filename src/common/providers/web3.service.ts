@@ -6,17 +6,15 @@ import { Network } from '@prisma/client';
 import { firstValueFrom } from 'rxjs';
 import Web3, { Contract } from 'web3';
 import { Web3Account } from 'web3-eth-accounts';
-import abiDecoder from 'abi-decoder';
 import {
+  CANCEL_ABI,
   FULFILLADVANCEDORDER_ABI,
   INKUBATE_ABI,
   LAUNCHPAD_ABI,
 } from '@config/abi';
 import { INKUBATE_ADDRESS, LAUNCHPAD_ADDRESS } from '@config/address';
 import { DeployLaunchpadDto } from '@modules/launchpad/dto/apply-launchpad.dto';
-import { CancelListingDto } from '@modules/listing/dto/cancel-listing.dto';
 import { ListingDto } from '@modules/listing/dto/listing.dto';
-import { utils } from 'ethers';
 import { OrderParameters } from '@common/types';
 
 @Injectable()
@@ -187,24 +185,30 @@ export class Web3Service {
     }
   }
 
-  async cancelListing({ network, transactionHash }: CancelListingDto) {
-    const transaction = await this.getTransaction(network, transactionHash);
-    const methodId = '0xfd9f1e10';
+  async cancelListing({ network, txHash }: ListingDto) {
+    let orderParameters: OrderParameters = {} as OrderParameters;
+    const transaction = await this.getTransaction(network, txHash);
+    const methodId =
+      this.web3[network].eth.abi.encodeFunctionSignature(CANCEL_ABI);
+    console.log('methodId', methodId);
     if (!transaction.input || transaction.input.search(methodId) === -1) return;
-    // const encodeParams = transaction.data.split(methodId)[1];
-    // const decodeParmas = this.web3[network].eth.abi.decodeParameters(
-    //   INKUBATE_ABI,
-    //   encodeParams,
-    // );
-    // console.log(decodeParmas);
-    // abiDecoder.addABI(INKUBATE_ABI);
-    // const decodedInput = abiDecoder.decodeMethod(transaction.input);
-    return { from: transaction.from };
+    try {
+      const params = this.web3[network].eth.abi.decodeParameters(
+        CANCEL_ABI.inputs,
+        transaction.data.split(methodId)[1],
+      );
+      orderParameters = params['orders']['0'];
+      console.log(orderParameters);
+      return { orderParameters, error: '' };
+    } catch (e) {
+      this.logger.error(e);
+      return { orderParameters, error: e };
+    }
   }
 
-  async buyListing({ network, transactionHash }: ListingDto) {
+  async buyListing({ network, txHash }: ListingDto) {
     let orderParameters: OrderParameters = {} as OrderParameters;
-    const transaction = await this.getTransaction(network, transactionHash);
+    const transaction = await this.getTransaction(network, txHash);
     const methodId = this.web3[network].eth.abi.encodeFunctionSignature(
       FULFILLADVANCEDORDER_ABI,
     );

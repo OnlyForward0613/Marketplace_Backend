@@ -18,8 +18,24 @@ export class ActivityService {
       },
       include: {
         nft: true,
-        seller: true,
-        buyer: true,
+        seller: {
+          include: {
+            profile: {
+              include: {
+                avatar: true,
+              },
+            },
+          },
+        },
+        buyer: {
+          include: {
+            profile: {
+              include: {
+                avatar: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -36,8 +52,24 @@ export class ActivityService {
             collection: true,
           },
         },
-        seller: true,
-        buyer: true,
+        seller: {
+          include: {
+            profile: {
+              include: {
+                avatar: true,
+              },
+            },
+          },
+        },
+        buyer: {
+          include: {
+            profile: {
+              include: {
+                avatar: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -48,8 +80,24 @@ export class ActivityService {
       },
       include: {
         nft: true,
-        seller: true,
-        buyer: true,
+        seller: {
+          include: {
+            profile: {
+              include: {
+                avatar: true,
+              },
+            },
+          },
+        },
+        buyer: {
+          include: {
+            profile: {
+              include: {
+                avatar: true,
+              },
+            },
+          },
+        },
       },
     });
   }

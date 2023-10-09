@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { ListingStatus, Prisma } from '@prisma/client';
+import { ActivityType, ListingStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import {
   GeneratorService,
@@ -7,7 +7,6 @@ import {
   OpenseaService,
 } from '@common/providers';
 import { CreateListingDto } from '@modules/listing/dto/create-listing.dto';
-import { CancelListingDto } from '../dto/cancel-listing.dto';
 import { ListingDto } from '../dto/listing.dto';
 
 @Injectable()
@@ -34,15 +33,33 @@ export class ListingService {
 
   async createListing(userId: string, data: CreateListingDto) {
     // const chainId = '5';
-    this.logger.log(`listing nft ${data.id}...`);
     try {
       const order = await this.openseaService.createSeaportListing(
         data.signature,
         data.parameters,
       );
+      await this.prismaService.activity.create({
+        data: {
+          id: this.generatorService.uuid(),
+          price: BigInt(order.message.offer[0].startAmount),
+          actionType: ActivityType.LISTED,
+          txHash: "",
+          nft: {
+            connect: {
+              id: data.nftId,
+            },
+          },
+          seller: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
       return await this.prismaService.listing.create({
         data: {
           id: this.generatorService.uuid(),
+          nftId: undefined,
           price: BigInt(order.message.offer[0].startAmount),
           network: data.network,
           expiresAt: new Date(Number(order.message.endTime) * 1000),
@@ -54,10 +71,10 @@ export class ListingService {
           },
           nft: {
             connect: {
-              id: data.id,
+              id: data.nftId,
             },
           },
-        },
+        } as Omit<Prisma.ListingCreateInput, 'nftId'>,
       });
     } catch (e) {
       this.logger.error(e);
@@ -65,10 +82,40 @@ export class ListingService {
     }
   }
 
-  async create(userId: string, args: Omit<Prisma.ListingCreateInput, ''>) {
-    return await this.prismaService.listing.create({
+  async cancelListing(userId: string, data: ListingDto) {
+    const listing = await this.prismaService.listing.findUnique({
+      where: { id: data.id },
+    });
+    if (!listing)
+      throw new HttpException('Invalid listing id', HttpStatus.BAD_REQUEST);
+
+    const order = await this.web3Service.cancelListing(data);
+    if (order.error !== '') {
+      this.logger.error(order.error);
+      throw new HttpException(order.error, HttpStatus.BAD_REQUEST);
+    }
+
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (user.walletAddress !== order.orderParameters.offerer)
+      throw new HttpException(
+        'Invalid Transaction Sender',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    await this.prismaService.activity.create({
       data: {
-        ...args,
+        id: this.generatorService.uuid(),
+        price: BigInt(order.orderParameters.offer[0].startAmount),
+        actionType: ActivityType.UNLISTED,
+        txHash: data.txHash,
+        nft: {
+          connect: {
+            id: data.nftId,
+          },
+        },
         seller: {
           connect: {
             id: userId,
@@ -76,31 +123,14 @@ export class ListingService {
         },
       },
     });
-  }
 
-  async cancelListing(userId: string, data: CancelListingDto) {
-    const cancelResult = await this.web3Service.cancelListing(data);
-    if (!cancelResult) {
-      this.logger.error('Invalid Transaction Hash');
-      throw new HttpException(
-        'Invalid Transaction Hash',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const user = await this.prismaService.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (user.walletAddress !== cancelResult.from)
-      throw new HttpException(
-        'Invalid Transaction Sender',
-        HttpStatus.BAD_REQUEST,
-      );
-
-    return this.prismaService.listing.delete({
+    return await this.prismaService.listing.update({
       where: {
         id: data.id,
+      },
+      data: {
+        // ...listing,
+        status: ListingStatus.INACTIVE,
       },
     });
   }

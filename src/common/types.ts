@@ -3,10 +3,6 @@ export enum ActivityType {
   Bid = 'Bid',
   Cancel = 'Cancel',
   Sale = 'Sale',
-
-  // all purchases are recorded as sales in DB
-  // so for the purpose of the filter, Purchase types
-  // are sales and we'll handle the filtering in the actual endpoint logic
   Purchase = 'Purchase',
   Transfer = 'Transfer',
   Swap = 'Swap',

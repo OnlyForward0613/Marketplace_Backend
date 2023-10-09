@@ -5,7 +5,7 @@ export class ListingDto {
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Nft id',
+    description: 'Listing id',
   })
   @IsString()
   @IsNotEmpty()
@@ -14,20 +14,20 @@ export class ListingDto {
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Transaction Hash',
+    description: 'Nft id',
   })
   @IsString()
   @IsNotEmpty()
-  transactionHash: string;
+  nftId: string;
 
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Parameters',
+    description: 'Transaction Hash',
   })
   @IsString()
   @IsNotEmpty()
-  parameters: string;
+  txHash: string;
 
   @ApiProperty({
     required: true,

@@ -9,7 +9,7 @@ export class CreateListingDto {
   })
   @IsString()
   @IsNotEmpty()
-  id: string;
+  nftId: string;
 
   @ApiProperty({
     required: true,
