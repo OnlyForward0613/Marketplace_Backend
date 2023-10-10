@@ -1,11 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ActivityType, ListingStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
-import {
-  GeneratorService,
-  Web3Service,
-  OpenseaService,
-} from '@common/providers';
+import { GeneratorService, Web3Service } from '@common/providers';
 import { CreateListingDto } from '@modules/listing/dto/create-listing.dto';
 import { ListingDto } from '../dto/listing.dto';
 
@@ -15,26 +11,31 @@ export class ListingService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly generatorService: GeneratorService,
-    private readonly openseaService: OpenseaService,
     private readonly web3Service: Web3Service,
   ) {}
 
   async getListings(args: Prisma.ListingFindManyArgs) {
     return this.prismaService.listing.findMany({
       ...args,
+      where: {
+        status: ListingStatus.ACTIVE,
+      },
     });
   }
 
   async getListing(args: Prisma.ListingFindFirstArgs) {
     return this.prismaService.listing.findFirst({
       ...args,
+      where: {
+        status: ListingStatus.ACTIVE,
+      },
     });
   }
 
   async createListing(userId: string, data: CreateListingDto) {
     // const chainId = '5';
     try {
-      const order = await this.openseaService.createSeaportListing(
+      const order = await this.web3Service.createSeaportListing(
         data.signature,
         data.parameters,
       );
@@ -43,7 +44,7 @@ export class ListingService {
           id: this.generatorService.uuid(),
           price: BigInt(order.message.offer[0].startAmount),
           actionType: ActivityType.LISTED,
-          txHash: "",
+          txHash: '',
           nft: {
             connect: {
               id: data.nftId,
@@ -63,6 +64,7 @@ export class ListingService {
           price: BigInt(order.message.offer[0].startAmount),
           network: data.network,
           expiresAt: new Date(Number(order.message.endTime) * 1000),
+          signature: data.signature,
           status: ListingStatus.ACTIVE,
           seller: {
             connect: {
@@ -151,12 +153,30 @@ export class ListingService {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
     });
-
-    if (user.walletAddress !== result.orderParameters.offerer)
+    if (user.walletAddress !== result.orderParameters.recipient)
       throw new HttpException(
         'Invalid Transaction Sender',
         HttpStatus.BAD_REQUEST,
       );
+
+    await this.prismaService.activity.create({
+      data: {
+        id: this.generatorService.uuid(),
+        price: result.orderParameters.consideration[0].amount,
+        actionType: ActivityType.SOLD,
+        txHash: data.txHash,
+        nft: {
+          connect: {
+            id: data.nftId,
+          },
+        },
+        seller: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
 
     return this.prismaService.listing.update({
       where: {

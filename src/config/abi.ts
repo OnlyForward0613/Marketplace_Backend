@@ -1,4 +1,4 @@
-export const CANCEL_ABI = {
+export const CANCEL_FUNCTION_ABI = {
   inputs: [
     {
       components: [
@@ -68,7 +68,7 @@ export const CANCEL_ABI = {
   type: 'function',
 };
 
-export const FULFILLADVANCEDORDER_ABI = {
+export const FULFILLADVANCEDORDER_FUNCTION_ABI = {
   inputs: [
     {
       components: [
@@ -197,6 +197,136 @@ export const FULFILLADVANCEDORDER_ABI = {
   outputs: [{ internalType: 'bool', name: 'fulfilled', type: 'bool' }],
   stateMutability: 'payable',
   type: 'function',
+};
+
+export const FULFILLBASICORDER_EFFICIENT_6GL6YC_FUNCTION_ABI = {
+  inputs: [
+    {
+      components: [
+        {
+          internalType: 'address',
+          name: 'considerationToken',
+          type: 'address',
+        },
+        {
+          internalType: 'uint256',
+          name: 'considerationIdentifier',
+          type: 'uint256',
+        },
+        {
+          internalType: 'uint256',
+          name: 'considerationAmount',
+          type: 'uint256',
+        },
+        { internalType: 'address payable', name: 'offerer', type: 'address' },
+        { internalType: 'address', name: 'zone', type: 'address' },
+        { internalType: 'address', name: 'offerToken', type: 'address' },
+        { internalType: 'uint256', name: 'offerIdentifier', type: 'uint256' },
+        { internalType: 'uint256', name: 'offerAmount', type: 'uint256' },
+        {
+          internalType: 'enum BasicOrderType',
+          name: 'basicOrderType',
+          type: 'uint8',
+        },
+        { internalType: 'uint256', name: 'startTime', type: 'uint256' },
+        { internalType: 'uint256', name: 'endTime', type: 'uint256' },
+        { internalType: 'bytes32', name: 'zoneHash', type: 'bytes32' },
+        { internalType: 'uint256', name: 'salt', type: 'uint256' },
+        {
+          internalType: 'bytes32',
+          name: 'offererConduitKey',
+          type: 'bytes32',
+        },
+        {
+          internalType: 'bytes32',
+          name: 'fulfillerConduitKey',
+          type: 'bytes32',
+        },
+        {
+          internalType: 'uint256',
+          name: 'totalOriginalAdditionalRecipients',
+          type: 'uint256',
+        },
+        {
+          components: [
+            { internalType: 'uint256', name: 'amount', type: 'uint256' },
+            {
+              internalType: 'address payable',
+              name: 'recipient',
+              type: 'address',
+            },
+          ],
+          internalType: 'struct AdditionalRecipient[]',
+          name: 'additionalRecipients',
+          type: 'tuple[]',
+        },
+        { internalType: 'bytes', name: 'signature', type: 'bytes' },
+      ],
+      internalType: 'struct BasicOrderParameters',
+      name: 'parameters',
+      type: 'tuple',
+    },
+  ],
+  name: 'fulfillBasicOrder_efficient_6GL6yc',
+  outputs: [{ internalType: 'bool', name: 'fulfilled', type: 'bool' }],
+  stateMutability: 'payable',
+  type: 'function',
+};
+
+export const ORDERFULFILLED_EVENT_ABI = {
+  anonymous: false,
+  inputs: [
+    {
+      indexed: false,
+      internalType: 'bytes32',
+      name: 'orderHash',
+      type: 'bytes32',
+    },
+    {
+      indexed: true,
+      internalType: 'address',
+      name: 'offerer',
+      type: 'address',
+    },
+    { indexed: true, internalType: 'address', name: 'zone', type: 'address' },
+    {
+      indexed: false,
+      internalType: 'address',
+      name: 'recipient',
+      type: 'address',
+    },
+    {
+      components: [
+        { internalType: 'enum ItemType', name: 'itemType', type: 'uint8' },
+        { internalType: 'address', name: 'token', type: 'address' },
+        { internalType: 'uint256', name: 'identifier', type: 'uint256' },
+        { internalType: 'uint256', name: 'amount', type: 'uint256' },
+      ],
+      indexed: false,
+      internalType: 'struct SpentItem[]',
+      name: 'offer',
+      type: 'tuple[]',
+    },
+    {
+      components: [
+        { internalType: 'enum ItemType', name: 'itemType', type: 'uint8' },
+        { internalType: 'address', name: 'token', type: 'address' },
+        { internalType: 'uint256', name: 'identifier', type: 'uint256' },
+        { internalType: 'uint256', name: 'amount', type: 'uint256' },
+        {
+          internalType: 'address payable',
+          name: 'recipient',
+          type: 'address',
+        },
+      ],
+      indexed: false,
+      internalType: 'struct ReceivedItem[]',
+      name: 'consideration',
+      type: 'tuple[]',
+    },
+  ],
+  name: 'OrderFulfilled',
+  type: 'event',
 };
 
 export const INKUBATE_ABI = [
@@ -429,61 +559,7 @@ export const INKUBATE_ABI = [
     name: 'OrderCancelled',
     type: 'event',
   },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: 'bytes32',
-        name: 'orderHash',
-        type: 'bytes32',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'offerer',
-        type: 'address',
-      },
-      { indexed: true, internalType: 'address', name: 'zone', type: 'address' },
-      {
-        indexed: false,
-        internalType: 'address',
-        name: 'recipient',
-        type: 'address',
-      },
-      {
-        components: [
-          { internalType: 'enum ItemType', name: 'itemType', type: 'uint8' },
-          { internalType: 'address', name: 'token', type: 'address' },
-          { internalType: 'uint256', name: 'identifier', type: 'uint256' },
-          { internalType: 'uint256', name: 'amount', type: 'uint256' },
-        ],
-        indexed: false,
-        internalType: 'struct SpentItem[]',
-        name: 'offer',
-        type: 'tuple[]',
-      },
-      {
-        components: [
-          { internalType: 'enum ItemType', name: 'itemType', type: 'uint8' },
-          { internalType: 'address', name: 'token', type: 'address' },
-          { internalType: 'uint256', name: 'identifier', type: 'uint256' },
-          { internalType: 'uint256', name: 'amount', type: 'uint256' },
-          {
-            internalType: 'address payable',
-            name: 'recipient',
-            type: 'address',
-          },
-        ],
-        indexed: false,
-        internalType: 'struct ReceivedItem[]',
-        name: 'consideration',
-        type: 'tuple[]',
-      },
-    ],
-    name: 'OrderFulfilled',
-    type: 'event',
-  },
+  ORDERFULFILLED_EVENT_ABI,
   {
     anonymous: false,
     inputs: [
@@ -576,8 +652,8 @@ export const INKUBATE_ABI = [
     name: 'OrdersMatched',
     type: 'event',
   },
-  CANCEL_ABI,
-  FULFILLADVANCEDORDER_ABI,
+  CANCEL_FUNCTION_ABI,
+  FULFILLADVANCEDORDER_FUNCTION_ABI,
   {
     inputs: [
       {
@@ -975,79 +1051,7 @@ export const INKUBATE_ABI = [
     stateMutability: 'payable',
     type: 'function',
   },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: 'address',
-            name: 'considerationToken',
-            type: 'address',
-          },
-          {
-            internalType: 'uint256',
-            name: 'considerationIdentifier',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint256',
-            name: 'considerationAmount',
-            type: 'uint256',
-          },
-          { internalType: 'address payable', name: 'offerer', type: 'address' },
-          { internalType: 'address', name: 'zone', type: 'address' },
-          { internalType: 'address', name: 'offerToken', type: 'address' },
-          { internalType: 'uint256', name: 'offerIdentifier', type: 'uint256' },
-          { internalType: 'uint256', name: 'offerAmount', type: 'uint256' },
-          {
-            internalType: 'enum BasicOrderType',
-            name: 'basicOrderType',
-            type: 'uint8',
-          },
-          { internalType: 'uint256', name: 'startTime', type: 'uint256' },
-          { internalType: 'uint256', name: 'endTime', type: 'uint256' },
-          { internalType: 'bytes32', name: 'zoneHash', type: 'bytes32' },
-          { internalType: 'uint256', name: 'salt', type: 'uint256' },
-          {
-            internalType: 'bytes32',
-            name: 'offererConduitKey',
-            type: 'bytes32',
-          },
-          {
-            internalType: 'bytes32',
-            name: 'fulfillerConduitKey',
-            type: 'bytes32',
-          },
-          {
-            internalType: 'uint256',
-            name: 'totalOriginalAdditionalRecipients',
-            type: 'uint256',
-          },
-          {
-            components: [
-              { internalType: 'uint256', name: 'amount', type: 'uint256' },
-              {
-                internalType: 'address payable',
-                name: 'recipient',
-                type: 'address',
-              },
-            ],
-            internalType: 'struct AdditionalRecipient[]',
-            name: 'additionalRecipients',
-            type: 'tuple[]',
-          },
-          { internalType: 'bytes', name: 'signature', type: 'bytes' },
-        ],
-        internalType: 'struct BasicOrderParameters',
-        name: 'parameters',
-        type: 'tuple',
-      },
-    ],
-    name: 'fulfillBasicOrder_efficient_6GL6yc',
-    outputs: [{ internalType: 'bool', name: 'fulfilled', type: 'bool' }],
-    stateMutability: 'payable',
-    type: 'function',
-  },
+  FULFILLBASICORDER_EFFICIENT_6GL6YC_FUNCTION_ABI,
   {
     inputs: [
       {

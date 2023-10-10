@@ -133,6 +133,7 @@ model Listing {
   price     BigInt
   network   Network
   expiresAt DateTime?
+  signature String
   status    ListingStatus
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
@@ -146,16 +147,16 @@ model Offer {
   listingId  String
   nftId      String
   sellerId   String
-  buyerId    String?
+  buyerId    String
   offerPrice BigInt
-  txHash     String?
+  signature  String
   status     OfferStatus
   expiresAt  DateTime?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   nft        NFT         @relation(fields: [nftId], references: [id])
   seller     User        @relation("seller", fields: [sellerId], references: [id])
-  buyer      User?       @relation("buyer", fields: [buyerId], references: [id])
+  buyer      User        @relation("buyer", fields: [buyerId], references: [id])
   listing    Listing     @relation(fields: [listingId], references: [id])
 }
 

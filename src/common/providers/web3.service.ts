@@ -1,21 +1,22 @@
 import { NFTCollectionsDto } from '@modules/collection/dto/collection.dto';
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Network } from '@prisma/client';
 import { firstValueFrom } from 'rxjs';
 import Web3, { Contract } from 'web3';
 import { Web3Account } from 'web3-eth-accounts';
 import {
-  CANCEL_ABI,
-  FULFILLADVANCEDORDER_ABI,
+  CANCEL_FUNCTION_ABI,
   INKUBATE_ABI,
   LAUNCHPAD_ABI,
+  ORDERFULFILLED_EVENT_ABI,
 } from '@config/abi';
 import { INKUBATE_ADDRESS, LAUNCHPAD_ADDRESS } from '@config/address';
 import { DeployLaunchpadDto } from '@modules/launchpad/dto/apply-launchpad.dto';
 import { ListingDto } from '@modules/listing/dto/listing.dto';
-import { OrderParameters } from '@common/types';
+import { BuyOrderParameters, OrderParameters, Parameters } from '@common/types';
+import { AcceptOfferDto } from '@modules/offer/dto/accept-offer.dto';
 
 @Injectable()
 export class Web3Service {
@@ -72,6 +73,10 @@ export class Web3Service {
 
   async getTransaction(network: Network, transactionHash: string) {
     return await this.web3[network].eth.getTransaction(transactionHash);
+  }
+
+  async getTransactionReceipt(network: Network, transactionHash: string) {
+    return await this.web3[network].eth.getTransactionReceipt(transactionHash);
   }
 
   async getERC721Contracts() {
@@ -185,16 +190,79 @@ export class Web3Service {
     }
   }
 
+  /**
+   * Returns true if the listing succeeded, false otherwise.
+   * @param signature  signature of the order for these parameters
+   * @param parameters stringified JSON matching the 'parameters' field in the protocol data schema
+   * @param chainId
+   */
+  createSeaportListing = async (
+    signature: string,
+    parameters: string,
+  ): Promise<Parameters> => {
+    // data.types.EIP712Domain = [
+    //   { name: 'name', type: 'string' },
+    //   { name: 'version', type: 'string' },
+    //   { name: 'chainId', type: 'uint256' },
+    //   { name: 'verifyingContract', type: 'address' },
+    // ];
+    // const data: {
+    //   types: Types;
+    //   primaryType: PrimaryType;
+    //   domain: Domain;
+    //   message: OrderComponent;
+    // } = {
+    //   types: {
+    //     EIP712Domain: [
+    //       { name: 'name', type: 'string' },
+    //       { name: 'version', type: 'string' },
+    //       { name: 'chainId', type: 'uint256' },
+    //       { name: 'verifyingContract', type: 'address' },
+    //     ],
+    //     OrderComponents: [
+    //       { name: 'channel_adr', type: 'address' },
+    //       { name: 'channel_seq', type: 'uint32' },
+    //       { name: 'balance', type: 'uint256' },
+    //     ],
+    //   },
+    //   primaryType: 'OrderComponents',
+    //   domain: {
+    //     name: 'XBR',
+    //     version: '1',
+    //     chainId: 1,
+    //     verifyingContract: '0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B',
+    //   },
+    //   message: {
+    //     channel_adr: '0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B',
+    //     channel_seq: 39,
+    //     balance: 2700,
+    //   },
+    // };
+
+    // const a = sigUtils.extractPublicKey({ data: data, sig: signature });
+    // console.info(a);
+
+    try {
+      const data: Parameters = JSON.parse(parameters);
+      return data;
+    } catch (err) {
+      this.logger.error(`Error in createSeaportListing: ${err}`);
+      this.logger.log(`seaport signature ${signature}`);
+      this.logger.log(`createSeaportListing payload ${parameters}`);
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  };
+
   async cancelListing({ network, txHash }: ListingDto) {
     let orderParameters: OrderParameters = {} as OrderParameters;
     const transaction = await this.getTransaction(network, txHash);
     const methodId =
-      this.web3[network].eth.abi.encodeFunctionSignature(CANCEL_ABI);
+      this.web3[network].eth.abi.encodeFunctionSignature(CANCEL_FUNCTION_ABI);
     console.log('methodId', methodId);
     if (!transaction.input || transaction.input.search(methodId) === -1) return;
     try {
       const params = this.web3[network].eth.abi.decodeParameters(
-        CANCEL_ABI.inputs,
+        CANCEL_FUNCTION_ABI.inputs,
         transaction.data.split(methodId)[1],
       );
       orderParameters = params['orders']['0'];
@@ -207,19 +275,30 @@ export class Web3Service {
   }
 
   async buyListing({ network, txHash }: ListingDto) {
-    let orderParameters: OrderParameters = {} as OrderParameters;
-    const transaction = await this.getTransaction(network, txHash);
-    const methodId = this.web3[network].eth.abi.encodeFunctionSignature(
-      FULFILLADVANCEDORDER_ABI,
-    );
-    if (!transaction.input || transaction.input.search(methodId) === -1)
-      return { orderParameters, error: 'Invalid transaction hash' };
+    let orderParameters: BuyOrderParameters = {} as BuyOrderParameters;
+    const rept = await this.getTransactionReceipt(network, txHash);
     try {
-      const params = this.web3[network].eth.abi.decodeParameters(
-        FULFILLADVANCEDORDER_ABI.inputs,
-        transaction.data.split(methodId)[1],
+      const orderParameters = this.web3[network].eth.abi.decodeLog(
+        ORDERFULFILLED_EVENT_ABI.inputs,
+        rept.logs[0].data.toString(),
+        rept.logs[0].topics.map((t) => t.toString()),
       );
-      orderParameters = params['0']['parameters'];
+      return { orderParameters, error: '' };
+    } catch (e) {
+      this.logger.error(e);
+      return { orderParameters, error: e };
+    }
+  }
+
+  async acceptOffer({ network, txHash }: AcceptOfferDto) {
+    let orderParameters: BuyOrderParameters = {} as BuyOrderParameters;
+    const rept = await this.getTransactionReceipt(network, txHash);
+    try {
+      const orderParameters = this.web3[network].eth.abi.decodeLog(
+        ORDERFULFILLED_EVENT_ABI.inputs,
+        rept.logs[0].data.toString(),
+        rept.logs[0].topics.map((t) => t.toString()),
+      );
       return { orderParameters, error: '' };
     } catch (e) {
       this.logger.error(e);

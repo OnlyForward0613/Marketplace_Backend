@@ -64,7 +64,7 @@ export class AuthService {
     } else {
       await this.userService.createUser({
         nonce: nonce,
-        username: walletAddress,
+        username: walletAddress.slice(0, 5) + '...' + walletAddress.slice(-5),
         walletAddress: walletAddress,
       });
     }
@@ -79,13 +79,13 @@ export class AuthService {
     if (!user)
       throw new BadRequestException('Provided walletAddress is invalid');
 
-    // const isValid = await this.tokenService.verifySignature(
-    //   user.walletAddress,
-    //   user.nonce,
-    //   signature,
-    // );
-    // if (!isValid)
-    //   throw new BadRequestException('Provided signature is invalid');
+    const isValid = await this.tokenService.verifySignature(
+      user.walletAddress,
+      user.nonce,
+      signature,
+    );
+    if (!isValid)
+      throw new BadRequestException('Provided signature is invalid');
 
     const authTokens = await this.generateAuthToken({
       id: user.id,

@@ -242,6 +242,15 @@ export interface OrderParameters {
   counter: number;
 }
 
+export interface BuyOrderParameters {
+  orderHash: string;
+  offerer: string;
+  zone: string;
+  recipient: string;
+  offer: Asset[];
+  consideration: Consideration[];
+}
+
 interface Order {
   parameters: OrderParameters;
   signature: string;
