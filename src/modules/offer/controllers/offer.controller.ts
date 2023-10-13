@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
@@ -15,18 +23,70 @@ const moduleName = 'offer';
 export class OfferController {
   constructor(private readonly offerService: OfferService) {}
 
-  @ApiOperation({ summary: 'Get NFT offers by seller', description: '' })
-  @UseGuards(AccessTokenGuard)
-  @Get('sell')
-  async getSellOffers(@CurrentUser() actor: User) {
-    return this.offerService.getSellOffers(actor.id);
+  @ApiOperation({
+    summary: 'Get NFT offer by id',
+  })
+  @Public()
+  @Get(':id')
+  async getOfferById(@Param('id') id: string) {
+    return this.offerService.getOffer({
+      where: {
+        id,
+      },
+      include: {
+        nft: true,
+        seller: true,
+        buyer: true,
+        listing: true,
+      },
+    });
   }
 
-  @ApiOperation({ summary: 'Get NFT offers by buyer', description: '' })
+  @ApiOperation({
+    summary: 'Get NFT offers as a seller',
+    description: 'forbidden',
+  })
+  @UseGuards(AccessTokenGuard)
+  @Get('sell')
+  async getSellOffers(@CurrentUser() user: User) {
+    return this.offerService.getOffers({
+      where: {
+        sellerId: user.id,
+      },
+      include: {
+        nft: true,
+      },
+    });
+  }
+
+  @ApiOperation({
+    summary: 'Get NFT offers as a buyer',
+    description: 'forbidden',
+  })
   @UseGuards(AccessTokenGuard)
   @Get('buy')
-  async getBuyOffers(@CurrentUser() actor: User) {
-    return this.offerService.getBuyOffers(actor.id);
+  async getBuyOffers(@CurrentUser() user: User) {
+    return this.offerService.getOffers({
+      where: {
+        buyerId: user.id,
+      },
+      include: {
+        nft: true,
+      },
+    });
+  }
+
+  @ApiOperation({
+    summary: 'Get NFT offers by nft id',
+  })
+  @Public()
+  @Get('nft/:nftId')
+  async getOffersByNft(@Param('nftId') nftId: string) {
+    return this.offerService.getOffers({
+      where: {
+        nftId,
+      },
+    });
   }
 
   @ApiOperation({ summary: 'Create new offer', description: 'forbidden' })
@@ -34,7 +94,7 @@ export class OfferController {
   @UseGuards(AccessTokenGuard)
   @Post()
   async createOffer(@CurrentUser() actor: User, @Body() data: CreateOfferDto) {
-    return this.offerService.createInitialOffer(actor.id, data);
+    return this.offerService.createOffer(actor.id, data);
   }
 
   @ApiOperation({ summary: 'Cancel offer', description: 'forbidden' })

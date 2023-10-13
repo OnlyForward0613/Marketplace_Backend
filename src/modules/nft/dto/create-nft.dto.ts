@@ -86,4 +86,22 @@ export class CreateNftDto {
   @ApiProperty()
   @IsNotEmpty()
   attributes: object;
+
+  @ApiProperty({
+    required: true,
+    description: 'Mint price',
+  })
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  price: bigint;
+
+  @ApiProperty({
+    required: true,
+    description: 'Transaction Hash',
+  })
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  txHash: string;
 }

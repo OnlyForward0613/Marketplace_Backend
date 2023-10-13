@@ -10,7 +10,7 @@ import {
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
-import { User } from '@prisma/client';
+import { ListingStatus, User } from '@prisma/client';
 import { CreateListingDto } from '../dto/create-listing.dto';
 import { ListingService } from '../services/listing.service';
 import { ListingDto } from '../dto/listing.dto';
@@ -27,7 +27,7 @@ export class ListingController {
   @Get()
   async getAllListings() {
     return this.listingService.getListings({
-      where: {},
+      where: { status: ListingStatus.ACTIVE },
       include: {
         seller: true,
         nft: true,
@@ -43,21 +43,22 @@ export class ListingController {
   @Get('mine')
   async getListingsByUser(@CurrentUser() user: User) {
     return this.listingService.getListings({
-      where: { sellerId: user.id },
+      where: { sellerId: user.id, status: ListingStatus.ACTIVE },
       include: {
         nft: true,
       },
     });
   }
 
-  @ApiOperation({ summary: 'Get listing by nft id', description: 'forbidden' })
-  @UseGuards(AccessTokenGuard)
+  @ApiOperation({ summary: 'Get listing by nft id', description: 'public' })
+  @Public()
   @Get('nft/:id')
-  async getListingsByNftId(@CurrentUser() user: User, @Param('id') id: string) {
+  async getListingsByNftId(@Param('id') id: string) {
     return this.listingService.getListing({
-      where: { nftId: id, sellerId: user.id },
+      where: { nftId: id, status: ListingStatus.ACTIVE },
       include: {
         nft: true,
+        seller: true,
       },
     });
   }
@@ -67,10 +68,10 @@ export class ListingController {
   @Get(':id')
   async getListingById(@Param('id') id: string) {
     return this.listingService.getListing({
-      where: { id },
+      where: { id, status: ListingStatus.ACTIVE },
       include: {
-        seller: true,
         nft: true,
+        seller: true,
       },
     });
   }
@@ -90,10 +91,7 @@ export class ListingController {
   @ApiBody({ type: ListingDto })
   @UseGuards(AccessTokenGuard)
   @Delete()
-  async cancelListing(
-    @CurrentUser() user: User,
-    @Body() data: ListingDto,
-  ) {
+  async cancelListing(@CurrentUser() user: User, @Body() data: ListingDto) {
     return this.listingService.cancelListing(user.id, data);
   }
 

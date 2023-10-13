@@ -132,6 +132,8 @@ model Listing {
   sellerId  String
   price     BigInt
   network   Network
+  startTime DateTime
+  endTime   DateTime
   expiresAt DateTime?
   signature String
   status    ListingStatus
