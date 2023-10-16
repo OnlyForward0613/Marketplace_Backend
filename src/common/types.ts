@@ -139,7 +139,7 @@ export type OrderComponent = {
   zoneHash: string;
   salt: string;
   conduitKey: string;
-  totalOriginalConsiderationItems: number;
+  totalOriginalConsiderationItems?: number;
   counter: number;
 };
 

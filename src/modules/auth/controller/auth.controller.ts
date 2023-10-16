@@ -47,7 +47,6 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Sign out' })
-  @Public()
   @Post('signout')
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)

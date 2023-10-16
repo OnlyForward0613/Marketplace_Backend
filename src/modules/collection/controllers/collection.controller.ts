@@ -16,7 +16,7 @@ import {
   NFTCollectionsDto,
 } from '../dto/collection.dto';
 import { AccessTokenGuard } from '@common/guards';
-import { CurrentUser } from '@common/decorators';
+import { CurrentUser, Public } from '@common/decorators';
 import { IPayloadUserJwt } from '@common/interfaces';
 
 const moduleName = 'collection';
@@ -28,6 +28,7 @@ export class CollectionController {
 
   @ApiOperation({ summary: 'Find all collections' })
   @ApiResponse({ status: 200, isArray: true })
+  @Public()
   @Get()
   async getCollections(): Promise<Collection[]> {
     return this.collectionService.getCollections();
@@ -45,6 +46,7 @@ export class CollectionController {
   }
 
   @ApiOperation({ summary: 'Find Collection by id' })
+  @Public()
   @Get(':id')
   async getCollection(@Param('id') id: string) {
     return this.collectionService.getCollection({ where: { id: id } });
@@ -61,6 +63,7 @@ export class CollectionController {
 
   @ApiOperation({ summary: 'Get contract' })
   @ApiBody({ type: NFTCollectionsDto })
+  @Public()
   @Get('contracts')
   async getContracts(@Query() data: NFTCollectionsDto) {
     return this.collectionService.getConts(data);

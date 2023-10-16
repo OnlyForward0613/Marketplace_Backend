@@ -90,7 +90,7 @@ export class ListingController {
   @ApiOperation({ summary: 'Cancel nft', description: 'forbidden' })
   @ApiBody({ type: ListingDto })
   @UseGuards(AccessTokenGuard)
-  @Delete()
+  @Post('cancel')
   async cancelListing(@CurrentUser() user: User, @Body() data: ListingDto) {
     return this.listingService.cancelListing(user.id, data);
   }

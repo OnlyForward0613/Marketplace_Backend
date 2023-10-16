@@ -48,6 +48,7 @@ export class LaunchpadController {
 
   @ApiOperation({ summary: 'Find launchpad by id' })
   @ApiResponse({ type: GetLaunchpadDto })
+  @Public()
   @Get(':id')
   async getLaunchpad(@Param('id') id: string) {
     return this.launchpadService.getLaunchpad({ where: { id: id } });

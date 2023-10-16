@@ -152,6 +152,7 @@ model Offer {
   buyerId    String
   offerPrice BigInt
   signature  String
+  parameters String
   status     OfferStatus
   expiresAt  DateTime?
   createdAt  DateTime    @default(now())

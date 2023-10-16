@@ -16,6 +16,9 @@ export class ActivityService {
       where: {
         OR: [{ sellerId: userId }, { buyerId: userId }],
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
       include: {
         nft: true,
         seller: {
@@ -45,6 +48,9 @@ export class ActivityService {
         nft: {
           collectionId,
         },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
       include: {
         nft: {
@@ -77,6 +83,9 @@ export class ActivityService {
     return this.prismaService.activity.findMany({
       where: {
         nftId,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
       include: {
         nft: true,

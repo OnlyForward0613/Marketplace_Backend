@@ -43,13 +43,30 @@ export class OfferController {
   }
 
   @ApiOperation({
+    summary: 'Get NFT offers by nft id',
+  })
+  @Public()
+  @Get('nft/:nftId')
+  async getOffersByNft(@Param('nftId') nftId: string) {
+    return await this.offerService.getOffers({
+      where: {
+        nftId,
+      },
+      include: {
+        buyer: true,
+      },
+    });
+  }
+
+  @ApiOperation({
     summary: 'Get NFT offers as a seller',
     description: 'forbidden',
   })
   @UseGuards(AccessTokenGuard)
-  @Get('sell')
+  @Post('sell')
   async getSellOffers(@CurrentUser() user: User) {
-    return this.offerService.getOffers({
+    console.log(user.id);
+    return await this.offerService.getOffers({
       where: {
         sellerId: user.id,
       },
@@ -64,27 +81,14 @@ export class OfferController {
     description: 'forbidden',
   })
   @UseGuards(AccessTokenGuard)
-  @Get('buy')
+  @Post('buy')
   async getBuyOffers(@CurrentUser() user: User) {
-    return this.offerService.getOffers({
+    return await this.offerService.getOffers({
       where: {
         buyerId: user.id,
       },
       include: {
         nft: true,
-      },
-    });
-  }
-
-  @ApiOperation({
-    summary: 'Get NFT offers by nft id',
-  })
-  @Public()
-  @Get('nft/:nftId')
-  async getOffersByNft(@Param('nftId') nftId: string) {
-    return this.offerService.getOffers({
-      where: {
-        nftId,
       },
     });
   }
@@ -100,7 +104,7 @@ export class OfferController {
   @ApiOperation({ summary: 'Cancel offer', description: 'forbidden' })
   @ApiBody({ type: CancelOfferDto })
   @UseGuards(AccessTokenGuard)
-  @Delete()
+  @Post('cancel')
   async cancelOffer(@CurrentUser() actor: User, @Body() data: CancelOfferDto) {
     return this.offerService.cancelOffer(actor.id, data);
   }

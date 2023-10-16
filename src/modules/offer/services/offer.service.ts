@@ -1,6 +1,11 @@
 import { GeneratorService, Web3Service } from '@common/providers';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { ActivityType, OfferStatus, Prisma } from '@prisma/client';
+import {
+  ActivityType,
+  ListingStatus,
+  OfferStatus,
+  Prisma,
+} from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { OrderComponent, Parameters } from '@common/types';
 import { CreateOfferDto } from '../dto/create-offer.dto';
@@ -17,13 +22,13 @@ export class OfferService {
   ) {}
 
   async getOffers(args: Prisma.OfferFindManyArgs) {
-    return this.prismaService.offer.findMany({
+    return await this.prismaService.offer.findMany({
       ...args,
     });
   }
 
   async getOffer(args: Prisma.OfferFindUniqueOrThrowArgs) {
-    return this.prismaService.offer.findUniqueOrThrow({
+    return await this.prismaService.offer.findUniqueOrThrow({
       ...args,
     });
   }
@@ -40,58 +45,63 @@ export class OfferService {
         HttpStatus.EXPECTATION_FAILED,
       );
 
-    const parameters: OrderComponent = JSON.parse(data.parameters);
-    const price = BigInt(parameters.offer[0].startAmount);
+    try {
+      const parameters: OrderComponent = JSON.parse(data.parameters);
+      const price = BigInt(parameters.offer[0].startAmount);
 
-    const newOffer = await this.prismaService.offer.create({
-      data: {
-        id: this.generatorService.uuid(),
-        offerPrice: price,
-        signature: data.signature,
-        status: OfferStatus.CREATED,
-        nft: {
-          connect: {
-            id: data.nftId,
+      const newOffer = await this.prismaService.offer.create({
+        data: {
+          id: this.generatorService.uuid(),
+          offerPrice: price,
+          signature: data.signature,
+          parameters: data.parameters,
+          status: OfferStatus.CREATED,
+          nft: {
+            connect: {
+              id: listing.nftId,
+            },
+          },
+          seller: {
+            connect: {
+              id: listing.sellerId,
+            },
+          },
+          buyer: {
+            connect: {
+              id: userId,
+            },
+          },
+          listing: {
+            connect: {
+              id: data.listingId,
+            },
           },
         },
-        seller: {
-          connect: {
-            id: listing.sellerId,
-          },
-        },
-        buyer: {
-          connect: {
-            id: userId,
-          },
-        },
-        listing: {
-          connect: {
-            id: data.listingId,
-          },
-        },
-      },
-    });
+      });
 
-    await this.prismaService.activity.create({
-      data: {
-        id: this.generatorService.uuid(),
-        price,
-        actionType: ActivityType.CREATED_OFFER,
-        txHash: '',
-        nft: {
-          connect: {
-            id: data.nftId,
+      await this.prismaService.activity.create({
+        data: {
+          id: this.generatorService.uuid(),
+          price,
+          actionType: ActivityType.CREATED_OFFER,
+          txHash: '',
+          nft: {
+            connect: {
+              id: listing.nftId,
+            },
+          },
+          seller: {
+            connect: {
+              id: userId,
+            },
           },
         },
-        seller: {
-          connect: {
-            id: userId,
-          },
-        },
-      },
-    });
+      });
 
-    return newOffer;
+      return newOffer;
+    } catch (e) {
+      throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async cancelOffer(userId: string, data: CancelOfferDto) {
@@ -172,40 +182,62 @@ export class OfferService {
         HttpStatus.EXPECTATION_FAILED,
       );
 
-    const updatedOffer = await this.prismaService.offer.update({
-      where: {
-        id: data.id,
-      },
-      data: {
-        ...offer,
-        status: OfferStatus.ACCEPTED,
-      },
-    });
+    try {
+      const updatedOffer = await this.prismaService.offer.update({
+        where: {
+          id: data.id,
+        },
+        data: {
+          ...offer,
+          status: OfferStatus.ACCEPTED,
+        },
+      });
 
-    await this.prismaService.activity.create({
-      data: {
-        id: this.generatorService.uuid(),
-        price: result.orderParameters.consideration[0].amount,
-        actionType: ActivityType.SOLD,
-        txHash: data.txHash,
-        nft: {
-          connect: {
-            id: offer.nftId,
-          },
+      await this.prismaService.listing.update({
+        where: {
+          id: offer.listingId,
         },
-        seller: {
-          connect: {
-            id: offer.sellerId,
-          },
+        data: {
+          status: ListingStatus.SOLD,
         },
-        buyer: {
-          connect: {
-            id: offer.buyerId,
-          },
-        },
-      },
-    });
+      });
 
-    return updatedOffer;
+      await this.prismaService.nFT.update({
+        where: {
+          id: offer.nftId,
+        },
+        data: {
+          ownerId: userId,
+        },
+      });
+
+      await this.prismaService.activity.create({
+        data: {
+          id: this.generatorService.uuid(),
+          price: result.orderParameters.consideration[0].amount,
+          actionType: ActivityType.SOLD,
+          txHash: data.txHash,
+          nft: {
+            connect: {
+              id: offer.nftId,
+            },
+          },
+          seller: {
+            connect: {
+              id: offer.sellerId,
+            },
+          },
+          buyer: {
+            connect: {
+              id: offer.buyerId,
+            },
+          },
+        },
+      });
+
+      return updatedOffer;
+    } catch (err) {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

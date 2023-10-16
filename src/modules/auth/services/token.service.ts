@@ -32,7 +32,7 @@ export class TokenService {
    * @returns whether the token match the encrypted token
    */
   async compare(token: string, encrypted: string): Promise<boolean> {
-    return await argon2.verify(token, encrypted);
+    return await argon2.verify(encrypted, token);
   }
 
   /**
