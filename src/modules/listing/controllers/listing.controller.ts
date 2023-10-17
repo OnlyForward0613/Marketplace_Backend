@@ -30,7 +30,11 @@ export class ListingController {
       where: { status: ListingStatus.ACTIVE },
       include: {
         seller: true,
-        nft: true,
+        nft: {
+          include: {
+            owner: true,
+          }
+        },
       },
     });
   }
