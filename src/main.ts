@@ -62,6 +62,7 @@ async function bootstrap() {
   });
 
   const isProd = configService.get('application.isProd');
+  _logger.log({ isProd });
   // session
   const sessionOptions = sessionConfig(
     redisService.client,
@@ -79,29 +80,10 @@ async function bootstrap() {
       .use(helmet())
       .use(
         RateLimit({
-          windowMs: 15 * 60 * 1000, // 15 minutes
-          max: 100, // limit each IP to 100 requests per windowMs
+          windowMs: 1 * 60 * 1000, // 1 minutes
+          max: 1000, // limit each IP to 1000 requests per windowMs
         }),
       );
-    // use(function (req, res, next) {
-    // res.header(
-    //   'Access-Control-Allow-Origin',
-    //   'https://inkubate-marketplace-fe.vercel.app',
-    // );
-    // res.header(
-    //   'Access-Control-Allow-Headers',
-    //   'Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept',
-    // );
-    // res.header(
-    //   'Access-Control-Allow-Methods',
-    //   'GET,POST,PUT,PATCH,DELETE, OPTIONS',
-    // );
-    // res.header('Access-Control-Allow-Credentials', true);
-    //   if (req.method === 'OPTIONS') {
-    //     return res.sendStatus(204);
-    //   }
-    //   next();
-    // });
   }
   app.useGlobalPipes(
     new ValidationPipe({
