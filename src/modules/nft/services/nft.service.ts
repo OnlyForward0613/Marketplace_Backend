@@ -42,65 +42,70 @@ export class NftService {
       this.logger.error(result.error);
       throw new HttpException(result.error, HttpStatus.EXPECTATION_FAILED);
     }
-    const newNfts = await Promise.all(
-      result.tokenDatas.map(
-        async (tokenData) =>
-          await this.prismaService.nFT.create({
-            data: {
-              id: this.generatorService.uuid(),
-              collectionId: undefined,
-              creatorId: undefined,
-              tokenAddress: tokenData.tokenAddress,
-              tokenId: tokenData.tokenId,
-              tokenUri: tokenData.tokenId,
-              name: tokenData.metadata.name,
-              image: tokenData.metadata.image,
-              attributes: tokenData.metadata
-                .attributes as Prisma.InputJsonValue,
-              royalty: 0,
-              contractType: data.contractType,
-              collection: {
-                connect: {
-                  id: data.collectionId,
-                },
-              },
-              minter: {
-                connect: {
-                  id: userId,
-                },
-              },
-              owner: {
-                connect: {
-                  id: userId,
-                },
-              },
-            } as Omit<Prisma.NFTCreateInput, 'collectionId'>,
-          }),
-      ),
-    );
 
-    newNfts.map(async (nft) => {
-      await this.prismaService.activity.create({
-        data: {
-          id: this.generatorService.uuid(),
-          price: data.price,
-          actionType: ActivityType.MINTED,
-          txHash: data.txHash,
-          nft: {
-            connect: {
-              id: nft.id,
+    try {
+      const newNfts = await Promise.all(
+        result.tokenDatas.map(
+          async (tokenData) =>
+            await this.prismaService.nFT.create({
+              data: {
+                id: this.generatorService.uuid(),
+                collectionId: undefined,
+                creatorId: undefined,
+                tokenAddress: tokenData.tokenAddress,
+                tokenId: tokenData.tokenId,
+                tokenUri: tokenData.tokenUri,
+                name: tokenData.metadata.name,
+                image: tokenData.metadata.image,
+                attributes: tokenData.metadata
+                  .attributes as Prisma.InputJsonValue,
+                royalty: 0,
+                contractType: data.contractType,
+                collection: {
+                  connect: {
+                    id: data.collectionId,
+                  },
+                },
+                minter: {
+                  connect: {
+                    id: userId,
+                  },
+                },
+                owner: {
+                  connect: {
+                    id: userId,
+                  },
+                },
+              } as Omit<Prisma.NFTCreateInput, 'collectionId'>,
+            }),
+        ),
+      );
+
+      newNfts.map(async (nft) => {
+        await this.prismaService.activity.create({
+          data: {
+            id: this.generatorService.uuid(),
+            price: data.price,
+            actionType: ActivityType.MINTED,
+            txHash: data.txHash,
+            nft: {
+              connect: {
+                id: nft.id,
+              },
+            },
+            seller: {
+              connect: {
+                id: userId,
+              },
             },
           },
-          seller: {
-            connect: {
-              id: userId,
-            },
-          },
-        },
+        });
+        this.logger.log(`New nft ${nft.id} is created`);
       });
-      this.logger.log(`New nft ${nft.id} is created`);
-    });
 
-    return newNfts;
+      return newNfts;
+    } catch (err) {
+      throw new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

@@ -209,13 +209,14 @@ export class Web3Service {
       const eventId =
         this.web3[network].eth.abi.encodeEventSignature(MINTNFT_EVENT_ABI);
       const logs = rept.logs.filter((log) => log.topics[0] === eventId);
-      const tokenIds = logs.map(
-        (log) =>
-          this.web3[network].eth.abi.decodeLog(
+      const tokenIds = logs.map((log) =>
+        this.web3[network].eth.abi
+          .decodeLog(
             MINTNFT_EVENT_ABI.inputs,
             log.data.toString(),
             log.topics.map((t) => t.toString()),
-          ).tokenId as string,
+          )
+          .tokenId.toString(),
       );
       tokenDatas = await Promise.all(
         tokenIds.map(async (tokenId) => {

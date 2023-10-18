@@ -8,6 +8,7 @@ import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { IPayloadUserJwt } from '@common/interfaces';
 import { GetNftDto } from '../dto/get-nft.dto';
+import { User } from '@prisma/client';
 
 const moduleName = 'nft';
 
@@ -57,9 +58,9 @@ export class NftController {
   @UseGuards(AccessTokenGuard)
   @Post()
   async createNft(
-    @CurrentUser() payload: IPayloadUserJwt,
+    @CurrentUser() user: User,
     @Body() createNftDto: CreateNftDto,
   ) {
-    return await this.nftService.createNft(payload.id, createNftDto);
+    return await this.nftService.createNft(user.id, createNftDto);
   }
 }
