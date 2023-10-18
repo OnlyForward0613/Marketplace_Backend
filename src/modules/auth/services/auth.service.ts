@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -79,13 +81,17 @@ export class AuthService {
     if (!user)
       throw new BadRequestException('Provided walletAddress is invalid');
 
-    const isValid = await this.tokenService.verifySignature(
+    const [isValid, err] = await this.tokenService.verifySignature(
       user.walletAddress,
       user.nonce,
       signature,
     );
+    if (err) throw new HttpException(err, HttpStatus.EXPECTATION_FAILED);
     if (!isValid)
-      throw new BadRequestException('Provided signature is invalid');
+      throw new HttpException(
+        'Provided signature is invalid',
+        HttpStatus.EXPECTATION_FAILED,
+      );
 
     const authTokens = await this.generateAuthToken({
       id: user.id,

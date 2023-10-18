@@ -45,9 +45,9 @@ export class NftController {
   @ApiBody({ type: GetNftDto })
   @Public()
   @Post('get')
-  async getNft(@Body() { address, nftId }: GetNftDto) {
+  async getNft(@Body() data: GetNftDto) {
     const nfts = await this.nftService.getNfts({
-      where: { address, nftId },
+      where: data,
     });
     return nfts[0];
   }

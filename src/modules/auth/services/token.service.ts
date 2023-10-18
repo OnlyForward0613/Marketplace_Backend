@@ -47,16 +47,21 @@ export class TokenService {
     walletAddress: string,
     nonce: string,
     signature: string,
-  ): Promise<boolean> {
-    this.logger.log('signature is ', signature);
-
-    const recoveredAddress = await recoverMessageAddress({
-      message: `${VerifyMsg}\nnonce:${nonce}`,
-      signature: Buffer.from(signature.slice(2), 'hex'),
-    });
-
-    this.logger.log('recoveredAddress is ', recoveredAddress);
-    return walletAddress.toLowerCase() === recoveredAddress.toLowerCase();
+  ): Promise<[boolean, string]> {
+    try {
+      const recoveredAddress = await recoverMessageAddress({
+        message: `${VerifyMsg}\nnonce:${nonce}`,
+        signature: Buffer.from(signature.slice(2), 'hex'),
+      });
+      this.logger.log(`RecoveredAddress is ${recoveredAddress}`);
+      return [
+        walletAddress.toLowerCase() === recoveredAddress.toLowerCase(),
+        '',
+      ];
+    } catch (err) {
+      this.logger.log(`Invalid signature: ${err}`);
+      return [false, err.message];
+    }
   }
 
   verifyWallet(walletAddress: string) {

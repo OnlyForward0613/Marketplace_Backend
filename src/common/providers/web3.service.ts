@@ -6,18 +6,28 @@ import { Network } from '@prisma/client';
 import { firstValueFrom } from 'rxjs';
 import Web3, { Contract } from 'web3';
 import { Web3Account } from 'web3-eth-accounts';
+import axios from 'axios';
 import {
   CANCEL_FUNCTION_ABI,
+  ERC721A_ABI,
   FULFILLBASICORDER_ABI,
   INKUBATE_ABI,
   LAUNCHPAD_ABI,
+  MINTNFT_EVENT_ABI,
   ORDERFULFILLED_EVENT_ABI,
 } from '@config/abi';
 import { INKUBATE_ADDRESS, LAUNCHPAD_ADDRESS } from '@config/address';
 import { DeployLaunchpadDto } from '@modules/launchpad/dto/apply-launchpad.dto';
 import { ListingDto } from '@modules/listing/dto/listing.dto';
-import { BuyOrderParameters, OrderParameters, Parameters } from '@common/types';
+import {
+  BuyOrderParameters,
+  Metadata,
+  OrderParameters,
+  Parameters,
+  TokenData,
+} from '@common/types';
 import { AcceptOfferDto } from '@modules/offer/dto/accept-offer.dto';
+import { CreateNftDto } from '@modules/nft/dto/create-nft.dto';
 
 @Injectable()
 export class Web3Service {
@@ -188,6 +198,47 @@ export class Web3Service {
       } else return '';
     } catch (e) {
       this.logger.error(e);
+    }
+  }
+
+  async mintNft({ network, txHash }: CreateNftDto) {
+    let tokenDatas: TokenData[] = {} as TokenData[];
+    const rept = await this.getTransactionReceipt(network, txHash);
+    try {
+      const tokenAddress = rept.to;
+      const eventId =
+        this.web3[network].eth.abi.encodeEventSignature(MINTNFT_EVENT_ABI);
+      const logs = rept.logs.filter((log) => log.topics[0] === eventId);
+      const tokenIds = logs.map(
+        (log) =>
+          this.web3[network].eth.abi.decodeLog(
+            MINTNFT_EVENT_ABI.inputs,
+            log.data.toString(),
+            log.topics.map((t) => t.toString()),
+          ).tokenId as string,
+      );
+      tokenDatas = await Promise.all(
+        tokenIds.map(async (tokenId) => {
+          const contract = new this.web3.MAIN.eth.Contract(
+            ERC721A_ABI,
+            tokenAddress,
+          );
+          const tokenUri =
+            // @ts-ignore
+            (await contract.methods.tokenURI(tokenId).call()) as string;
+          const res = await axios.get(tokenUri);
+          return {
+            tokenAddress,
+            tokenId,
+            tokenUri,
+            metadata: res.data,
+          };
+        }),
+      );
+      return { tokenDatas, error: '' };
+    } catch (e) {
+      this.logger.error(e);
+      return { tokenDatas, error: e };
     }
   }
 

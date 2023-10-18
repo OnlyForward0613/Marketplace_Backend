@@ -105,14 +105,14 @@ model NFT {
   id           String       @id @unique
   ownerId      String
   minterId     String
-  address      String
   collectionId String
+  tokenAddress String
+  tokenId      String // #id value in nft name
+  tokenUri     String
   name         String
-  nftId        String // #id value in nft name
-  imgUrl       String
-  royalty      Int // permyriad value
-  assetUrl     String
+  image        String
   attributes   Json
+  royalty      Int // permyriad value
   contractType ContractType
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt

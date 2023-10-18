@@ -295,3 +295,17 @@ export interface OpenseaOrderRequest {
   tokenId: string;
   chainId: string;
 }
+
+export interface Metadata {
+  name: string;
+  description: string;
+  image: string;
+  attributes: string;
+}
+
+export interface TokenData {
+  tokenAddress: string;
+  tokenId: string;
+  tokenUri: string;
+  metadata: Metadata;
+}
