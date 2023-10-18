@@ -17,15 +17,6 @@ export class CreateNftDto {
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Nft id of contract',
-  })
-  @IsString()
-  @IsNotEmpty()
-  nftId: string;
-
-  @ApiProperty({
-    required: true,
-    type: 'string',
     description: 'Contract type',
   })
   @ApiProperty()
