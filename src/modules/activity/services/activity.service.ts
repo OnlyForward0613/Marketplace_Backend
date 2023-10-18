@@ -1,15 +1,10 @@
-import { GeneratorService } from '@common/providers';
 import { Injectable } from '@nestjs/common';
 import { ActivityType } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
-import { CreateActivityDto } from '../dto/create-activity.dto';
 
 @Injectable()
 export class ActivityService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly generatorService: GeneratorService,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getActivitiesByUserId(userId: string) {
     return this.prismaService.activity.findMany({
@@ -42,12 +37,17 @@ export class ActivityService {
       },
     });
   }
+  // Get only sales activity for collection activity endpoint
   async getActivitiesByCollectionId(collectionId: string) {
     return this.prismaService.activity.findMany({
       where: {
         nft: {
           collectionId,
         },
+        OR: [
+          { actionType: ActivityType.SOLD },
+          { actionType: ActivityType.ACCPETED_OFFER },
+        ],
       },
       orderBy: {
         createdAt: 'desc',
@@ -110,14 +110,4 @@ export class ActivityService {
       },
     });
   }
-  // async createInitialActivity(userId: string, activityData: CreateActivityDto) {
-  //   return this.prismaService.activity.create({
-  //     data: {
-  //       id: this.generatorService.uuid(),
-  //       status: ActivityType.SOLD,
-  //       sellerId: userId,
-  //       ...activityData,
-  //     },
-  //   });
-  // }
 }

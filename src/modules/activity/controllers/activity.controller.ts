@@ -1,10 +1,9 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { User } from '@prisma/client';
 import { ActivityService } from '../services/activity.service';
-// import { CreateActivityDto } from '../dto/create-activity.dto';
 
 const moduleName = 'activity';
 
@@ -33,11 +32,4 @@ export class ActivityController {
   async getNftActivities(@Param('nftId') nftId: string) {
     return this.activityService.getActivityByNftId(nftId);
   }
-
-  // @ApiOperation({ summary: 'Create activity', description: '' })
-  // @UseGuards(AccessTokenGuard)
-  // @Post()
-  // async postActivity(@CurrentUser() actor: User, @Body() data: CreateActivityDto) {
-  //   return this.activityService.createInitialActivity(actor.id, data);
-  // }
 }
