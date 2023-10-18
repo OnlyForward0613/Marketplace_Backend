@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Launchpad, Collection } from '@prisma/client';
+import { Launchpad, LaunchpadStatus } from '@prisma/client';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { IPayloadUserJwt } from '@common/interfaces';
@@ -43,7 +43,11 @@ export class LaunchpadController {
   @Public()
   @Get()
   async getLaunchpads() {
-    return this.launchpadService.getLaunchpads({});
+    return this.launchpadService.getLaunchpads({
+      where: {
+        status: LaunchpadStatus.PUBLISHED,
+      },
+    });
   }
 
   @ApiOperation({ summary: 'Find launchpad by id' })

@@ -91,13 +91,20 @@ export class LaunchpadService {
         .getHexRoot();
       this.logger.log(`new merkleroot ${merkleRoot} is generated`);
 
+      const startTime = Math.floor(launchpad.startDate.getTime() / 1000);
+      const endTime = Math.floor(launchpad.endDate.getTime() / 1000);
+      const now = Math.floor(Date.now() / 1000);
+      this.logger.log(
+        `launchpad times: now - ${now}, start - ${startTime}, end - ${endTime}`,
+      );
+
       const collectionAddress = await this.web3Service.deployCollection(
         launchpad.network,
         {
           maxSupply: launchpad.supply,
           mintPrice: launchpad.mintPrice,
-          startTime: launchpad.startDate.getTime() / 1000,
-          endTime: launchpad.endDate.getTime() / 1000,
+          startTime,
+          endTime,
           maxMintAmount: launchpad.maxPerTx,
           maxWalletAmount: launchpad.maxPerWallet,
           creator: user.walletAddress,
