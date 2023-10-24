@@ -1,4 +1,5 @@
-import { GeneratorService, Web3Service } from '@common/providers';
+// offer.service.ts
+
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import {
   ActivityType,
@@ -7,7 +8,8 @@ import {
   Prisma,
 } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
-import { OrderComponent, Parameters } from '@common/types';
+import { GeneratorService, Web3Service } from '@common/providers';
+import { OrderComponent } from '@common/types';
 import { CreateOfferDto } from '../dto/create-offer.dto';
 import { CancelOfferDto } from '../dto/cancel-offer.dto';
 import { AcceptOfferDto } from '../dto/accept-offer.dto';
@@ -22,15 +24,11 @@ export class OfferService {
   ) {}
 
   async getOffers(args: Prisma.OfferFindManyArgs) {
-    return await this.prismaService.offer.findMany({
-      ...args,
-    });
+    return await this.prismaService.offer.findMany(args);
   }
 
   async getOffer(args: Prisma.OfferFindUniqueOrThrowArgs) {
-    return await this.prismaService.offer.findUniqueOrThrow({
-      ...args,
-    });
+    return await this.prismaService.offer.findUniqueOrThrow(args);
   }
 
   async createOffer(userId: string, data: CreateOfferDto) {

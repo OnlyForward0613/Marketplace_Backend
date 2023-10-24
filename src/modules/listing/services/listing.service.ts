@@ -1,3 +1,5 @@
+// listing.service.ts
+
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ActivityType, ListingStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
@@ -16,14 +18,16 @@ export class ListingService {
   ) {}
 
   async getListings(args: Prisma.ListingFindManyArgs) {
-    return this.prismaService.listing.findMany({
-      ...args,
-    });
+    return this.prismaService.listing.findMany(args);
   }
 
   async getListing(args: Prisma.ListingFindFirstArgs) {
     return this.prismaService.listing.findFirst({
       ...args,
+      include: {
+        nft: true,
+        seller: true,
+      },
     });
   }
 

@@ -1,6 +1,5 @@
-import { NFTCollectionsDto } from '@modules/collection/dto/collection.dto';
+import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Network } from '@prisma/client';
 import { firstValueFrom } from 'rxjs';
@@ -17,15 +16,9 @@ import {
   ORDERFULFILLED_EVENT_ABI,
 } from '@config/abi';
 import { INKUBATE_ADDRESS, LAUNCHPAD_ADDRESS } from '@config/address';
-import { DeployLaunchpadDto } from '@modules/launchpad/dto/apply-launchpad.dto';
+import { BuyOrderParameters, OrderParameters, TokenData } from '@common/types';
+import { DeployLaunchpadDto } from '@modules/launchpad/dto/deploy-launchpad.dto';
 import { ListingDto } from '@modules/listing/dto/listing.dto';
-import {
-  BuyOrderParameters,
-  Metadata,
-  OrderParameters,
-  Parameters,
-  TokenData,
-} from '@common/types';
 import { AcceptOfferDto } from '@modules/offer/dto/accept-offer.dto';
 import { CreateNftDto } from '@modules/nft/dto/create-nft.dto';
 
@@ -122,21 +115,21 @@ export class Web3Service {
     }
   }
 
-  async getNFTSbyAddress({ walletAddress, chainId }: NFTCollectionsDto) {
-    // const chainId = 1;
-    // const walletAddress = '0xb2df181E57fDe55CF35882610b84413678FD9840';
-    const res = await firstValueFrom(
-      this.httpService.get(
-        `https://nft.api.infura.io/networks/${chainId}/accounts/${walletAddress}/assets/nfts`,
-        {
-          headers: {
-            Authorization: `Basic ${this.infuraCred}`,
-          },
-        },
-      ),
-    );
-    return res.data;
-  }
+  // async getNFTSbyAddress({ walletAddress, chainId }: NFTCollectionsDto) {
+  //   // const chainId = 1;
+  //   // const walletAddress = '0xb2df181E57fDe55CF35882610b84413678FD9840';
+  //   const res = await firstValueFrom(
+  //     this.httpService.get(
+  //       `https://nft.api.infura.io/networks/${chainId}/accounts/${walletAddress}/assets/nfts`,
+  //       {
+  //         headers: {
+  //           Authorization: `Basic ${this.infuraCred}`,
+  //         },
+  //       },
+  //     ),
+  //   );
+  //   return res.data;
+  // }
 
   async deployCollection(
     network: Network,
@@ -294,12 +287,5 @@ export class Web3Service {
       this.logger.error(e);
       return { orderParameters, error: e };
     }
-  }
-
-  run() {
-    const methodId = this.web3.MAIN.eth.abi.encodeFunctionSignature(
-      FULFILLBASICORDER_ABI,
-    );
-    console.log('methodId', methodId);
   }
 }

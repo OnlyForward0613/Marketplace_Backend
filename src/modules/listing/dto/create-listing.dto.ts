@@ -1,3 +1,5 @@
+// create-listing.dto.ts
+
 import { ApiProperty } from '@nestjs/swagger';
 import { Network } from '@prisma/client';
 import { IsString, IsEnum, IsNotEmpty } from 'class-validator';

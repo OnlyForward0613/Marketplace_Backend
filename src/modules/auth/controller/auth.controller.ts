@@ -1,3 +1,5 @@
+// auth.controller.ts
+
 import {
   Body,
   Controller,
@@ -10,12 +12,8 @@ import {
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard, RefreshTokenGuard } from '@common/guards';
-import {
-  IPayloadUserJwt,
-  IRequestWithUser,
-  ISessionAuthToken,
-} from '@common/interfaces';
-import { UserSigninDto } from '@modules/auth/dto/signin.dto';
+import { IPayloadUserJwt, IRequestWithUser } from '@common/interfaces';
+import { SigninDto } from '@modules/auth/dto/signin.dto';
 import { User } from '@prisma/client';
 import { ForbiddenException } from '../../../errors';
 import { AuthService } from '../services';
@@ -38,11 +36,11 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'Sign in' })
-  @ApiBody({ type: UserSigninDto })
+  @ApiBody({ type: SigninDto })
   @Public()
   @Post('signin')
   @HttpCode(HttpStatus.OK)
-  async signIn(@Body() data: UserSigninDto): Promise<any> {
+  async signIn(@Body() data: SigninDto): Promise<any> {
     return await this.authService.signIn(data);
   }
 
@@ -77,7 +75,7 @@ export class AuthController {
     return authToken;
   }
 
-  @ApiOperation({ summary: 'Validate token' })
+  @ApiOperation({ summary: 'Validate token', description: 'forbidden' })
   @Post('validate')
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)

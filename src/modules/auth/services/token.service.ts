@@ -1,7 +1,8 @@
+// token.service.ts
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
-import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import { recoverMessageAddress, isHex } from 'viem';
 
 /** Salt or number of rounds to generate a salt */

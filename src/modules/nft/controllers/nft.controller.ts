@@ -1,14 +1,23 @@
 // nft.controller.ts
 
-import { Controller, Post, Body, Get, UseGuards, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { NftService } from '../services/nft.service';
 import { CreateNftDto } from '../dto/create-nft.dto';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
-import { IPayloadUserJwt } from '@common/interfaces';
 import { GetNftDto } from '../dto/get-nft.dto';
 import { User } from '@prisma/client';
+import { PaginationParams } from '@common/dto/pagenation-params.dto';
+import { SearchParams } from '@common/dto/search-params.dto';
 
 const moduleName = 'nft';
 
@@ -20,8 +29,12 @@ export class NftController {
   @ApiOperation({ summary: 'Find all nfts by collection id' })
   @Public()
   @Get(':collectionId')
-  async getCollectionNfts(@Param('collectionId') collectionId: string) {
-    return await this.nftService.getNfts({ where: { collectionId } });
+  async getCollectionNfts(
+    @Param('collectionId') collectionId: string,
+    @Query('search') search: SearchParams,
+    @Query() params: PaginationParams,
+  ) {
+    return await this.nftService.getNftsBySearch(collectionId, search, params);
   }
 
   @ApiOperation({ summary: 'Find all nfts user owned' })

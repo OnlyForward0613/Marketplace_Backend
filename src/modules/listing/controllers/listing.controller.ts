@@ -1,13 +1,7 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+// listing.controller.ts
+
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { ListingStatus, User } from '@prisma/client';
@@ -33,7 +27,7 @@ export class ListingController {
         nft: {
           include: {
             owner: true,
-          }
+          },
         },
       },
     });
@@ -60,10 +54,6 @@ export class ListingController {
   async getListingsByNftId(@Param('id') id: string) {
     return this.listingService.getListing({
       where: { nftId: id, status: ListingStatus.ACTIVE },
-      include: {
-        nft: true,
-        seller: true,
-      },
     });
   }
 
@@ -73,10 +63,6 @@ export class ListingController {
   async getListingById(@Param('id') id: string) {
     return this.listingService.getListing({
       where: { id, status: ListingStatus.ACTIVE },
-      include: {
-        nft: true,
-        seller: true,
-      },
     });
   }
 

@@ -1,3 +1,5 @@
+// access-token.strategy.ts
+
 import { StrategyToken } from '@common/guards/strategy.enum';
 import { IPayloadUserJwt } from '@common/interfaces';
 import { UserService } from '@modules/user/services';

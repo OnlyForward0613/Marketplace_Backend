@@ -1,6 +1,7 @@
+// refresh-token.strategy.ts
+
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Request } from 'express';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuthService } from '../services';
 import { StrategyToken } from '@common/guards/strategy.enum';

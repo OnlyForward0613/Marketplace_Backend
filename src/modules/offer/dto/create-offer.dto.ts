@@ -1,6 +1,8 @@
+// create-offer.dto.ts
+
 import { ApiProperty } from '@nestjs/swagger';
 import { Network } from '@prisma/client';
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 export class CreateOfferDto {
   @ApiProperty({
     required: true,

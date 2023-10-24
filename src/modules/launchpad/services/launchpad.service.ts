@@ -22,16 +22,16 @@ export class LaunchpadService {
 
   async getLaunchpads(args: Prisma.LaunchpadFindManyArgs) {
     return await this.prismaService.launchpad.findMany({
-      include: { image: true, logoImg: true, creator: true },
       ...args,
+      include: { image: true, logoImg: true, creator: true },
     });
   }
   public async getLaunchpad(
     args: Prisma.LaunchpadFindUniqueArgs,
   ): Promise<Launchpad> {
     return await this.prismaService.launchpad.findUnique({
-      include: { image: true, logoImg: true, creator: true },
       ...args,
+      include: { image: true, logoImg: true, creator: true },
     });
   }
 
@@ -91,20 +91,13 @@ export class LaunchpadService {
         .getHexRoot();
       this.logger.log(`new merkleroot ${merkleRoot} is generated`);
 
-      const startTime = Math.floor(launchpad.startDate.getTime() / 1000);
-      const endTime = Math.floor(launchpad.endDate.getTime() / 1000);
-      const now = Math.floor(Date.now() / 1000);
-      this.logger.log(
-        `launchpad times: now - ${now}, start - ${startTime}, end - ${endTime}`,
-      );
-
       const collectionAddress = await this.web3Service.deployCollection(
         launchpad.network,
         {
           maxSupply: launchpad.supply,
           mintPrice: launchpad.mintPrice,
-          startTime,
-          endTime,
+          startTime: launchpad.startDate.getTime() / 1000,
+          endTime: launchpad.endDate.getTime() / 1000,
           maxMintAmount: launchpad.maxPerTx,
           maxWalletAmount: launchpad.maxPerWallet,
           creator: user.walletAddress,
@@ -131,11 +124,12 @@ export class LaunchpadService {
         },
       });
 
-      await this.prismaService.collection.create({
+      const collection = await this.prismaService.collection.create({
         data: {
           id: this.generatorService.uuid(),
           name: launchpad.name,
           address: collectionAddress,
+          supply: launchpad.supply,
           avatarId: launchpad.logoId,
           bannerId: launchpad.imageId,
           desc: launchpad.desc,
@@ -145,6 +139,18 @@ export class LaunchpadService {
           creatorId: launchpad.creatorId,
           launchpadId: launchpad.id,
           verified: true,
+        },
+      });
+
+      await this.prismaService.stat.create({
+        data: {
+          id: this.generatorService.uuid(),
+          collectionId: collection.id,
+          owners: 0,
+          listedItems: 0,
+          salesItems: 0,
+          floorPrice: launchpad.mintPrice,
+          volume: 0,
         },
       });
 
@@ -213,8 +219,8 @@ export class LaunchpadService {
         {
           maxSupply: launchpad.supply,
           mintPrice: launchpad.mintPrice,
-          startTime: launchpad.startDate.getTime(),
-          endTime: launchpad.endDate.getTime(),
+          startTime: launchpad.startDate.getTime() / 1000,
+          endTime: launchpad.endDate.getTime() / 1000,
           maxMintAmount: launchpad.maxPerTx,
           maxWalletAmount: launchpad.maxPerWallet,
           creator: user.walletAddress,
@@ -224,6 +230,7 @@ export class LaunchpadService {
           merkleRoot: merkleRoot,
         },
       );
+
       if (!collectionAddress) {
         throw new HttpException(
           'Collection deploy was failed',
@@ -236,7 +243,7 @@ export class LaunchpadService {
           status: LaunchpadStatus.PUBLISHED,
         },
         where: {
-          id,
+          id: launchpad.id,
         },
       });
 
@@ -245,6 +252,7 @@ export class LaunchpadService {
           id: this.generatorService.uuid(),
           name: launchpad.name,
           address: collectionAddress,
+          supply: launchpad.supply,
           avatarId: launchpad.logoId,
           bannerId: launchpad.imageId,
           desc: launchpad.desc,
@@ -257,7 +265,19 @@ export class LaunchpadService {
         },
       });
 
-      return collection;
+      await this.prismaService.stat.create({
+        data: {
+          id: this.generatorService.uuid(),
+          collectionId: collection.id,
+          owners: 0,
+          listedItems: 0,
+          salesItems: 0,
+          floorPrice: launchpad.mintPrice,
+          volume: 0,
+        },
+      });
+
+      return launchpad;
     } catch (e) {
       this.logger.error(e);
       throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);

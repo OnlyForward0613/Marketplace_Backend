@@ -82,6 +82,7 @@ model Collection {
   id          String     @id @unique
   name        String
   address     String     @unique
+  supply      Int
   avatarId    String?    @unique
   bannerId    String?    @unique
   desc        String?
@@ -92,12 +93,14 @@ model Collection {
   creatorId   String
   launchpadId String?    @unique
   verified    Boolean    @default(false)
+  feature     Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   creator     User       @relation(fields: [creatorId], references: [id])
   avatar      Photo?     @relation("avatar", fields: [avatarId], references: [id])
   banner      Photo?     @relation("banner", fields: [bannerId], references: [id])
   nfts        NFT[]
+  stats       Stat[]
   launchpad   Launchpad? @relation(fields: [launchpadId], references: [id])
 }
 
@@ -254,6 +257,19 @@ model Notification {
   updatedAt    DateTime         @updatedAt
   user         User             @relation(fields: [userId], references: [id])
   activity     Activity         @relation(fields: [activityId], references: [id])
+}
+
+model Stat {
+  id           String     @id @unique
+  collectionId String
+  owners       Int
+  listedItems  Int
+  salesItems   Int
+  floorPrice   BigInt
+  volume       BigInt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  collection   Collection @relation(fields: [collectionId], references: [id])
 }
 
 enum ActivityType {

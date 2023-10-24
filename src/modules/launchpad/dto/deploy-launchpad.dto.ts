@@ -1,16 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
-
-export class ApplyLaunchpadDto {
-  @ApiProperty({
-    required: true,
-    type: 'string',
-    description: 'Launchpad id',
-  })
-  @IsString()
-  @IsNotEmpty()
-  id: string;
-}
+import { IsNotEmpty } from 'class-validator';
 
 export class DeployLaunchpadDto {
   @IsNotEmpty()

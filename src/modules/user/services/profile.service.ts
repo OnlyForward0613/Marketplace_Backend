@@ -1,8 +1,9 @@
-// import { IPayloadUserJwt } from '@common/interfaces';
+// profile.service.ts
+
+import { Injectable, Logger } from '@nestjs/common';
 import { GeneratorService } from '@common/providers';
 import { UpdateProfileDto } from '@modules/user/dto/update-profile.dto';
-import { Injectable, Logger } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { UserService } from './user.service';
 
@@ -62,13 +63,7 @@ export class ProfileService {
       });
   }
 
-  public async getProfile(userId: string) {
-    return await this.prismaService.profile.findUnique({
-      where: { userId },
-      include: {
-        avatar: true,
-        banner: true,
-      },
-    });
+  public async getProfile(args: Prisma.ProfileFindUniqueArgs) {
+    return await this.prismaService.profile.findUnique(args);
   }
 }

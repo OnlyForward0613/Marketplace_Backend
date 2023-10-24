@@ -1,3 +1,5 @@
+// create-activity.dto.ts
+
 import { IsNumber, IsString } from 'class-validator';
 export class CreateActivityDto {
   @IsString()

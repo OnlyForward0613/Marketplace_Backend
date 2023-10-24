@@ -12,7 +12,6 @@ import { LaunchpadModule } from '@modules/launchpad';
 import { ListingModule } from '@modules/listing';
 import { UserModule } from '@modules/user';
 import { OfferModule } from '@modules/offer';
-import { MarketplaceModule } from '@modules/marketplace';
 import { NftModule } from '@modules/nft';
 
 import { CommonModule } from './common';
@@ -33,7 +32,6 @@ import { PrismaModule } from './prisma';
     HealthModule,
     LaunchpadModule,
     ListingModule,
-    MarketplaceModule,
     NftModule,
     OfferModule,
     PrismaModule,

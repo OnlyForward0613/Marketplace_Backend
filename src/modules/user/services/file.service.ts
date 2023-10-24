@@ -1,10 +1,11 @@
+// file.service.ts
+
+import { Injectable } from '@nestjs/common';
 import { FileUploadService, GeneratorService } from '@common/providers';
-import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 
 @Injectable()
 export class FileService {
-  private _logger = new Logger(FileService.name);
   constructor(
     private prismaService: PrismaService,
     private fileUploadService: FileUploadService,

@@ -1,3 +1,5 @@
+// auth.service.ts
+
 import {
   BadRequestException,
   HttpException,
@@ -8,17 +10,14 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { IPayloadUserJwt, ISessionAuthToken } from '@common/interfaces';
-import { excludeFieldPrisma } from '@common/prisma-utils';
+import { IPayloadUserJwt } from '@common/interfaces';
 import { GeneratorService } from '@common/providers';
 import { UserService } from '@modules/user/services/user.service';
-import { User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { RedisE } from '@redis/redis.enum';
 import { RedisService } from '@redis/redis.service';
-import validator from 'validator';
 import { ForbiddenException, NotFoundException } from '../../../errors';
-import { UserSigninDto } from '../dto/signin.dto';
+import { SigninDto } from '../dto/signin.dto';
 import { TokenService } from './token.service';
 import { SignupDto } from '../dto/signup.dto';
 
@@ -35,7 +34,7 @@ export class AuthService {
     private generatorService: GeneratorService,
   ) {}
 
-  async validateUser({ walletAddress }: UserSigninDto): Promise<boolean> {
+  async validateUser({ walletAddress }: SigninDto): Promise<boolean> {
     this.logger.log(`${'*'.repeat(20)} validateUser() ${'*'.repeat(20)}`);
     this.logger.log(walletAddress);
     const user = await this.prismaService.user.findUnique({
@@ -74,7 +73,7 @@ export class AuthService {
     return nonce;
   }
 
-  public async signIn({ walletAddress, signature }: UserSigninDto) {
+  public async signIn({ walletAddress, signature }: SigninDto) {
     const user = await this.userService.getUser({
       where: { walletAddress },
     });

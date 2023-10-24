@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Launchpad, LaunchpadStatus } from '@prisma/client';
+import { Launchpad } from '@prisma/client';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
 import { IPayloadUserJwt } from '@common/interfaces';
@@ -43,11 +43,7 @@ export class LaunchpadController {
   @Public()
   @Get()
   async getLaunchpads() {
-    return this.launchpadService.getLaunchpads({
-      where: {
-        status: LaunchpadStatus.PUBLISHED,
-      },
-    });
+    return this.launchpadService.getLaunchpads({});
   }
 
   @ApiOperation({ summary: 'Find launchpad by id' })
@@ -55,7 +51,7 @@ export class LaunchpadController {
   @Public()
   @Get(':id')
   async getLaunchpad(@Param('id') id: string) {
-    return this.launchpadService.getLaunchpad({ where: { id: id } });
+    return this.launchpadService.getLaunchpad({ where: { id } });
   }
 
   @ApiOperation({ summary: 'Update launchpad', description: 'forbidden' })

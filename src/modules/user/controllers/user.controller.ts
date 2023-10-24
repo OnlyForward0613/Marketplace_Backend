@@ -1,3 +1,5 @@
+// user.controller.ts
+
 import {
   Body,
   Controller,
@@ -69,7 +71,6 @@ export class UserController {
   @Public()
   @Post('available-username')
   async availableUsername(@Body() data: UpdateUsernameDto) {
-    console.log('here');
     return await this.userService.availableUsername(data);
   }
 }

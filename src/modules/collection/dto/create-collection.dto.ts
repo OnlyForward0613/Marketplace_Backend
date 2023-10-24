@@ -1,6 +1,8 @@
+// create-collection.controller.ts
+
 import { ApiProperty } from '@nestjs/swagger';
 import { Network } from '@prisma/client';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCollectionDto {
   @ApiProperty({
@@ -20,6 +22,15 @@ export class CreateCollectionDto {
   @IsString()
   @IsNotEmpty()
   address: string;
+
+  @ApiProperty({
+    required: true,
+    type: 'number',
+    description: 'Total supply',
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  supply: number;
 
   @ApiProperty({
     required: false,
@@ -83,22 +94,4 @@ export class CreateCollectionDto {
   @IsString()
   @IsNotEmpty()
   network: Network;
-}
-
-export class CreateAttributeDto {
-  @IsNotEmpty()
-  name: string;
-
-  @IsNotEmpty()
-  type: string;
-
-  options: string[];
-}
-
-export class NFTCollectionsDto {
-  @IsNotEmpty()
-  walletAddress: string;
-
-  @IsNotEmpty()
-  chainId: string;
 }

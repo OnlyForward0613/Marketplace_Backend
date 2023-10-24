@@ -1,5 +1,5 @@
-import { Public } from '@common/decorators';
-import { AccessTokenGuard } from '@common/guards';
+// file.controller.ts
+
 import {
   Controller,
   Get,
@@ -11,9 +11,10 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Public } from '@common/decorators';
+import { AccessTokenGuard } from '@common/guards';
 import { FileService } from '../services';
 import { UploadFileDto } from '../dto/upload-file.dto';
 
