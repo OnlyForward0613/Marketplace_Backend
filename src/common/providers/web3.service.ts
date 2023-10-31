@@ -5,7 +5,7 @@ import { Network } from '@prisma/client';
 import { firstValueFrom } from 'rxjs';
 import Web3, { Contract } from 'web3';
 import { Web3Account } from 'web3-eth-accounts';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import {
   CANCEL_FUNCTION_ABI,
   ERC721A_ABI,
@@ -221,12 +221,23 @@ export class Web3Service {
             // @ts-ignore
             (await contract.methods.tokenURI(tokenId).call()) as string;
           this.logger.log(`tokenUri is ${tokenUri}`);
-          const res = await axios.get(tokenUri);
+          let metadata = {
+            name: '',
+            description: '',
+            image: '',
+            attributes: '',
+          };
+          try {
+            const res = await axios.get(tokenUri);
+            metadata = res.data;
+          } catch (e) {
+            this.logger.error(e);
+          }
           return {
             tokenAddress,
             tokenId,
             tokenUri,
-            metadata: res.data,
+            metadata,
           };
         }),
       );

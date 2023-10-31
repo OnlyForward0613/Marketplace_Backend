@@ -45,6 +45,22 @@ export class LikeService {
     }
   }
 
+  async getLikeByUser(userId: string, nftId: string) {
+    return await this.prismaService.like.findFirst({
+      where: {
+        userId,
+        nftId,
+      },
+      include: {
+        nft: {
+          include: {
+            owner: true,
+          },
+        },
+      },
+    });
+  }
+
   async createLike(userId: string, nftId: string) {
     return await this.prismaService.like.create({
       data: {

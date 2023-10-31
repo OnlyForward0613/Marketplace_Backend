@@ -37,6 +37,19 @@ export class LikeController {
     return await this.likeService.getLikesByUser(user.id, filter, pagination);
   }
 
+  @ApiOperation({
+    summary: 'Get like by user and nftId',
+    description: 'forbidden',
+  })
+  @UseGuards(AccessTokenGuard)
+  @Get(':nftId')
+  async getLikeByUser(
+    @Param('nftId') nftId: string,
+    @CurrentUser() user: User,
+  ) {
+    return await this.likeService.getLikeByUser(user.id, nftId);
+  }
+
   @ApiOperation({ summary: 'Create new like', description: 'forbidden' })
   @ApiBody({ type: CreateLikeDto })
   @UseGuards(AccessTokenGuard)
