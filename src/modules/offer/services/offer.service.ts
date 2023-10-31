@@ -13,6 +13,11 @@ import { OrderComponent } from '@common/types';
 import { CreateOfferDto } from '../dto/create-offer.dto';
 import { CancelOfferDto } from '../dto/cancel-offer.dto';
 import { AcceptOfferDto } from '../dto/accept-offer.dto';
+import {
+  FilterParams,
+  UserFilterByOption,
+} from '@common/dto/filter-params.dto';
+import { PaginationParams } from '@common/dto/pagenation-params.dto';
 
 @Injectable()
 export class OfferService {
@@ -29,6 +34,46 @@ export class OfferService {
 
   async getOffer(args: Prisma.OfferFindUniqueOrThrowArgs) {
     return await this.prismaService.offer.findUniqueOrThrow(args);
+  }
+
+  async getOffersByUser(
+    userId: string,
+    { filterBy }: FilterParams,
+    { offset = 1, limit = 20, startId = 0 }: PaginationParams,
+  ) {
+    const query = {
+      skip: offset * startId,
+      take: limit,
+      include: {
+        nft: true,
+        buyer: true,
+        seller: true,
+      },
+    };
+    switch (filterBy) {
+      case UserFilterByOption.BUY_OFFER:
+        return await this.prismaService.offer.findMany({
+          where: {
+            buyerId: userId,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          ...query,
+        });
+      case UserFilterByOption.SELL_OFFER:
+        return await this.prismaService.offer.findMany({
+          where: {
+            sellerId: userId,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          ...query,
+        });
+      default:
+        return [];
+    }
   }
 
   async createOffer(userId: string, data: CreateOfferDto) {

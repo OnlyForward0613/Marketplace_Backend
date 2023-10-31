@@ -20,10 +20,12 @@ export class UserService {
     private generatorService: GeneratorService,
   ) {}
 
-  public async createUser(data: Omit<Prisma.UserCreateInput, 'id'>) {
+  public async createUser(data: Omit<Prisma.UserCreateInput, 'id' | 'username'>) {
+    const newUserId = this.generatorService.uuid();
     return this.prismaService.user.create({
       data: {
-        id: this.generatorService.uuid(),
+        id: newUserId,
+        username: newUserId,
         ...data,
       },
     });

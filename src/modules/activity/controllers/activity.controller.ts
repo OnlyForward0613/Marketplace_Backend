@@ -1,11 +1,12 @@
 // activity.controller.ts
 
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser, Public } from '@common/decorators';
-import { AccessTokenGuard } from '@common/guards';
-import { ActivityType, User } from '@prisma/client';
+import { Public } from '@common/decorators';
+import { ActivityType } from '@prisma/client';
 import { ActivityService } from '../services/activity.service';
+import { FilterParams } from '@common/dto/filter-params.dto';
+import { PaginationParams } from '@common/dto/pagenation-params.dto';
 
 const moduleName = 'activity';
 
@@ -14,15 +15,19 @@ const moduleName = 'activity';
 export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}
 
-  @ApiOperation({ summary: 'Get activities by user', description: 'forbidden' })
-  @UseGuards(AccessTokenGuard)
-  @Get('user')
-  async getUserActivities(@CurrentUser() user: User) {
-    return await this.activityService.getActivities({
-      where: {
-        OR: [{ sellerId: user.id }, { buyerId: user.id }],
-      },
-    });
+  @ApiOperation({ summary: 'Get activities by user' })
+  @Public()
+  @Get('user/:userId')
+  async getUserActivities(
+    @Param('userId') userId: string,
+    @Query() filter: FilterParams,
+    @Query() pagination: PaginationParams,
+  ) {
+    return await this.activityService.getActivitiesByUser(
+      userId,
+      filter,
+      pagination,
+    );
   }
 
   @ApiOperation({

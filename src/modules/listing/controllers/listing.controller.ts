@@ -1,6 +1,14 @@
 // listing.controller.ts
 
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
@@ -8,6 +16,8 @@ import { ListingStatus, User } from '@prisma/client';
 import { CreateListingDto } from '../dto/create-listing.dto';
 import { ListingService } from '../services/listing.service';
 import { ListingDto } from '../dto/listing.dto';
+import { FilterParams } from '@common/dto/filter-params.dto';
+import { PaginationParams } from '@common/dto/pagenation-params.dto';
 
 const moduleName = 'listing';
 
@@ -33,19 +43,19 @@ export class ListingController {
     });
   }
 
-  @ApiOperation({
-    summary: 'Get listings by user id',
-    description: 'forbidden',
-  })
+  @ApiOperation({ summary: 'Get listings by user', description: 'forbidden' })
   @UseGuards(AccessTokenGuard)
-  @Get('mine')
-  async getListingsByUser(@CurrentUser() user: User) {
-    return this.listingService.getListings({
-      where: { sellerId: user.id, status: ListingStatus.ACTIVE },
-      include: {
-        nft: true,
-      },
-    });
+  @Get('user/:userId')
+  async getUserListings(
+    @CurrentUser() user: User,
+    @Query() filter: FilterParams,
+    @Query() pagination: PaginationParams,
+  ) {
+    return await this.listingService.getLisitingsByUser(
+      user.id,
+      filter,
+      pagination,
+    );
   }
 
   @ApiOperation({ summary: 'Get listing by nft id', description: 'public' })

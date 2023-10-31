@@ -65,7 +65,6 @@ export class AuthService {
     } else {
       await this.userService.createUser({
         nonce: nonce,
-        username: walletAddress.slice(0, 5) + '...' + walletAddress.slice(-5),
         walletAddress: walletAddress,
       });
     }

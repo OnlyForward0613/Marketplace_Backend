@@ -10,6 +10,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -19,6 +20,7 @@ import { IPayloadUserJwt } from '@common/interfaces';
 import { UpdateUsernameDto } from '@modules/user/dto/update-username.dto';
 import { UserService } from '@modules/user/services/user.service';
 import { User } from '@prisma/client';
+import { SearchParams } from '@common/dto/search-params.dto';
 
 const moduleName = 'user';
 
@@ -37,6 +39,21 @@ export class UserController {
       include: {
         profile: true,
       },
+    });
+  }
+
+  @ApiOperation({ summary: 'Find all users' })
+  @Public()
+  @Get()
+  async getUsers(@Query() { contains }: SearchParams): Promise<User[]> {
+    return this.userService.getManyUsers({
+      where: {
+        username: { contains: contains ? contains.slice(0, 2) : undefined },
+      },
+      include: {
+        profile: true,
+      },
+      take: 4,
     });
   }
 

@@ -3,7 +3,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { GeneratorService, Web3Service } from '@common/providers';
-import { Collection, Prisma } from '@prisma/client';
+import { Collection, PeriodType, Prisma } from '@prisma/client';
+import { SearchParams } from '@common/dto/search-params.dto';
+import { PaginationParams } from '@common/dto/pagenation-params.dto';
 
 @Injectable()
 export class CollectionService {
@@ -12,13 +14,21 @@ export class CollectionService {
     private generatorService: GeneratorService,
   ) {}
 
-  async getCollections() {
+  async getCollections(
+    { contains }: SearchParams,
+    { offset = 1, limit = 4, startId = 0 }: PaginationParams,
+  ) {
     return this.prismaService.collection.findMany({
+      where: {
+        name: { contains: contains ? contains.slice(0, 2) : undefined },
+      },
       include: {
         avatar: true,
         banner: true,
         creator: true,
       },
+      skip: offset * startId,
+      take: limit,
     });
   }
 
@@ -27,7 +37,12 @@ export class CollectionService {
   ): Promise<Collection> {
     return await this.prismaService.collection.findUnique({
       ...args,
-      include: { avatar: true, banner: true, creator: true },
+      include: {
+        avatar: true,
+        banner: true,
+        creator: true,
+        nfts: { select: { _count: true } },
+      },
     });
   }
 
@@ -47,17 +62,20 @@ export class CollectionService {
       },
     });
 
-    await this.prismaService.stat.create({
-      data: {
-        id: this.generatorService.uuid(),
-        collectionId: collection.id,
-        owners: 0,
-        listedItems: 0,
-        salesItems: 0,
-        floorPrice: 0,
-        volume: 0,
-      },
-    });
+    for (const period of Object.values(PeriodType)) {
+      await this.prismaService.stat.create({
+        data: {
+          id: this.generatorService.uuid(),
+          collectionId: collection.id,
+          owners: 0,
+          listedItems: 0,
+          salesItems: 0,
+          floorPrice: BigInt(0),
+          volume: BigInt(0),
+          period,
+        },
+      });
+    }
 
     return collection;
   }

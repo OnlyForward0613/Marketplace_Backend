@@ -14,10 +14,12 @@ import { NftService } from '../services/nft.service';
 import { CreateNftDto } from '../dto/create-nft.dto';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
-import { GetNftDto } from '../dto/get-nft.dto';
+import { GetNftDto, PaginationDto } from '../dto/get-nft.dto';
 import { User } from '@prisma/client';
 import { PaginationParams } from '@common/dto/pagenation-params.dto';
 import { SearchParams } from '@common/dto/search-params.dto';
+import { SortParams } from '@common/dto/sort-params.dto';
+import { FilterParams } from '@common/dto/filter-params.dto';
 
 const moduleName = 'nft';
 
@@ -28,13 +30,55 @@ export class NftController {
 
   @ApiOperation({ summary: 'Find all nfts by collection id' })
   @Public()
-  @Get(':collectionId')
-  async getCollectionNfts(
+  @Get('collection/:collectionId')
+  async getNftsByCollection(
     @Param('collectionId') collectionId: string,
-    @Query('search') search: SearchParams,
-    @Query() params: PaginationParams,
+    @Query() sort: SortParams,
+    @Query() search: SearchParams,
+    @Query() pagination: PaginationParams,
   ) {
-    return await this.nftService.getNftsBySearch(collectionId, search, params);
+    return await this.nftService.getNftsByCollection(
+      collectionId,
+      sort,
+      search,
+      pagination,
+    );
+  }
+
+  @ApiOperation({ summary: 'Find all nfts by user id' })
+  @Public()
+  @Get('user/:userId')
+  async getNftsByUser(
+    @Param('userId') userId: string,
+    @Query() sort: SortParams,
+    @Query() search: SearchParams,
+    @Query() filter: FilterParams,
+    @Query() pagination: PaginationParams,
+  ) {
+    return await this.nftService.getNftsByUser(
+      userId,
+      sort,
+      search,
+      filter,
+      pagination,
+    );
+  }
+
+  @ApiOperation({ summary: 'Find all nfts by user token' })
+  @ApiBody({ type: CreateNftDto })
+  @UseGuards(AccessTokenGuard)
+  @Post('user')
+  async getNftsByUserToken(
+    @CurrentUser() user: User,
+    @Body() { sort, search, pagination, filter }: PaginationDto,
+  ) {
+    return await this.nftService.getNftsByUser(
+      user.id,
+      sort,
+      search,
+      filter,
+      pagination,
+    );
   }
 
   @ApiOperation({ summary: 'Find all nfts user owned' })
@@ -60,10 +104,7 @@ export class NftController {
   @Public()
   @Post('get')
   async getNft(@Body() data: GetNftDto) {
-    const nfts = await this.nftService.getNfts({
-      where: data,
-    });
-    return nfts[0];
+    return await this.nftService.getNft(data);
   }
 
   @ApiOperation({ summary: 'Create new nft', description: 'forbidden' })

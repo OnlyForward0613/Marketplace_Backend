@@ -16,6 +16,7 @@ import { CurrentUser, Public } from '@common/decorators';
 import { CollectionService } from '../services/collection.service';
 import { CreateCollectionDto } from '../dto/create-collection.dto';
 import { PaginationParams } from '@common/dto/pagenation-params.dto';
+import { SearchParams } from '@common/dto/search-params.dto';
 
 const moduleName = 'collection';
 
@@ -25,11 +26,13 @@ export class CollectionController {
   constructor(private readonly collectionService: CollectionService) {}
 
   @ApiOperation({ summary: 'Find all collections' })
-  @ApiResponse({ status: 200, isArray: true })
   @Public()
   @Get()
-  async getCollections(): Promise<Collection[]> {
-    return this.collectionService.getCollections();
+  async getCollections(
+    @Query() search: SearchParams,
+    @Query() pagination: PaginationParams,
+  ): Promise<Collection[]> {
+    return this.collectionService.getCollections(search, pagination);
   }
 
   @ApiOperation({ summary: 'Find Collection by id' })

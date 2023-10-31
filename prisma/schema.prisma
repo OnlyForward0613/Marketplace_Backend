@@ -55,7 +55,7 @@ model Photo {
   link             String?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
-  file             FileEntity?
+  file             FileEntity? @relation(fields: [fileEntityId], references: [id])
   profileAvatar    Profile?    @relation("avatar")
   profileBanner    Profile?    @relation("banner")
   collectionAvatar Collection? @relation("avatar")
@@ -72,10 +72,9 @@ model FileEntity {
   mimeType    String
   size        Int
   description String
-  photoId     String?  @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  photo       Photo?   @relation(fields: [photoId], references: [id])
+  Photo       Photo[]
 }
 
 model Collection {
@@ -101,7 +100,7 @@ model Collection {
   banner      Photo?     @relation("banner", fields: [bannerId], references: [id])
   nfts        NFT[]
   stats       Stat[]
-  launchpad   Launchpad? @relation(fields: [launchpadId], references: [id])
+  launchpad   Launchpad?
 }
 
 model NFT {
@@ -192,12 +191,13 @@ model Launchpad {
   reddit              String?
   status              LaunchpadStatus
   collectionUri       String
+  collectionId        String?         @unique
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   creator             User            @relation(fields: [creatorId], references: [id])
   logoImg             Photo?          @relation("logo", fields: [logoId], references: [id])
   image               Photo?          @relation("image", fields: [imageId], references: [id])
-  collection          Collection?
+  collection          Collection?     @relation(fields: [collectionId], references: [id])
 }
 
 model Activity {
@@ -267,6 +267,8 @@ model Stat {
   salesItems   Int
   floorPrice   BigInt
   volume       BigInt
+  increased    Float      @default(100)
+  period       PeriodType
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   collection   Collection @relation(fields: [collectionId], references: [id])
@@ -320,4 +322,12 @@ enum OfferStatus {
 enum ContractType {
   ERC721
   ERC1155
+}
+
+enum PeriodType {
+  HOUR
+  SIX_HOURS
+  DAY
+  WEEK
+  ALL
 }

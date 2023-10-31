@@ -7,13 +7,13 @@ export class PaginationParams {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(1)
+  @Min(0)
   startId?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
+  @Min(1)
   offset?: number;
 
   @IsOptional()

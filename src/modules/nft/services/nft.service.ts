@@ -2,19 +2,21 @@
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import {
-  ActivityType,
-  ListingStatus,
-  NFT,
-  OfferStatus,
-  Prisma,
-} from '@prisma/client';
+import { ActivityType, ContractType, NFT, Prisma } from '@prisma/client';
 
 import { GeneratorService, Web3Service } from '@common/providers';
-import { CreateNftDto } from '../dto/create-nft.dto';
 import { PaginationParams } from '@common/dto/pagenation-params.dto';
-import { ListingController } from '@modules/listing/controllers/listing.controller';
-import { SearchParams, SortByOption } from '@common/dto/search-params.dto';
+import { SearchParams } from '@common/dto/search-params.dto';
+import {
+  CollectionSortByOption,
+  SortParams,
+} from '@common/dto/sort-params.dto';
+import {
+  FilterParams,
+  UserFilterByOption,
+} from '@common/dto/filter-params.dto';
+import { CreateNftDto } from '../dto/create-nft.dto';
+import { GetNftDto } from '../dto/get-nft.dto';
 
 @Injectable()
 export class NftService {
@@ -25,14 +27,28 @@ export class NftService {
     private generatorService: GeneratorService,
   ) {}
 
-  async getNft(args: Prisma.NFTFindUniqueOrThrowArgs): Promise<NFT> {
-    return this.prismaService.nFT.findUnique({
-      ...args,
+  async getNft(data: GetNftDto) {
+    const nft = await this.prismaService.nFT.findFirst({
+      where: data,
       include: {
         collection: true,
         owner: true,
       },
     });
+
+    let activites = [];
+
+    if (nft)
+      activites = await this.prismaService.activity.findMany({
+        where: {
+          nftId: nft.id,
+        },
+      });
+
+    return {
+      ...nft,
+      activites: activites,
+    };
   }
 
   async getNfts(args: Prisma.NFTFindManyArgs): Promise<NFT[]> {
@@ -45,204 +61,324 @@ export class NftService {
     });
   }
 
-  async getNftsBySearch(
+  async getNftsByCollection(
     collectionId: string,
-    { sortAscending, sortBy }: SearchParams,
-    { offset, limit, startId }: PaginationParams,
+    { sortAscending, sortBy }: SortParams,
+    { contains }: SearchParams,
+    { offset = 1, limit, startId = 0 }: PaginationParams,
   ) {
     const nfts = await this.prismaService.nFT.findMany({
       where: {
         collectionId,
-      },
-      include: {
-        owner: true,
-      },
-      orderBy: {
-        createdAt: sortAscending ? 'asc' : 'desc',
+        name: { contains: contains ? contains.slice(0, 2) : undefined },
       },
     });
 
-    let nftResults = [];
+    const activitiesAll = await this.prismaService.activity.findMany({
+      where: { nftId: { in: nfts.map((nft) => nft.id) } },
+    });
 
-    if (sortBy) {
-      switch (sortBy) {
-        case SortByOption.LISTING_DATE:
-          nftResults = await Promise.all(
-            nfts.map(async (nft) => {
-              const listing = await this.prismaService.listing.findFirst({
-                where: {
-                  nftId: nft.id,
-                  status: ListingStatus.ACTIVE,
-                },
-              });
-              return {
-                tokenId: nft.tokenId,
-                name: nft.name,
-                img: nft.image,
-                price: listing ? listing.price : '',
-                createdAt: listing ? listing.createdAt : nft.createdAt,
-              };
-            }),
-          );
+    const soldActivities = activitiesAll.filter(
+      (activity) => activity.actionType === ActivityType.SOLD,
+    );
 
-          nftResults.sort((a, b) => {
+    const listingActivities = activitiesAll.filter(
+      (activity) => activity.actionType === ActivityType.LISTED,
+    );
+
+    const offerActivities = activitiesAll.filter(
+      (activity) => activity.actionType === ActivityType.CREATED_OFFER,
+    );
+
+    const order = sortAscending === 'asc' ? 1 : -1;
+    const start = startId * offset;
+    const end = limit ? startId * offset + limit : -1;
+
+    switch (sortBy) {
+      case CollectionSortByOption.LISTING_DATE:
+        return listingActivities
+          .sort((a, b) => {
             if (a.createdAt < b.createdAt) {
-              return -1; // a comes before b
+              return order;
             } else if (a.createdAt > b.createdAt) {
-              return 1; // a comes after b
+              return order * -1;
             }
-            return 0; // a and b are equal in terms of sort order
-          });
+            return 0;
+          })
+          .slice(start, end);
 
-          return nftResults.slice(startId * offset, startId * offset + limit);
-
-        case SortByOption.BEST_OFFER:
-          nftResults = await Promise.all(
-            nfts.map(async (nft) => {
-              const offer = await this.prismaService.offer.findFirst({
-                where: {
-                  nftId: nft.id,
-                  status: OfferStatus.CREATED,
-                },
-              });
-              return {
-                tokenId: nft.tokenId,
-                name: nft.name,
-                img: nft.image,
-                price: offer ? offer.offerPrice : '',
-              };
-            }),
-          );
-
-          nftResults.sort((a, b) => {
+      case CollectionSortByOption.BEST_OFFER:
+        return offerActivities
+          .sort((a, b) => {
             if (a.price < b.price) {
-              return -1; // a comes before b
-            } else if (a.createdAt > b.createdAt) {
-              return 1; // a comes after b
-            }
-            return 0; // a and b are equal in terms of sort order
-          });
-
-          return nftResults.slice(startId * offset, startId * offset + limit);
-
-        case SortByOption.LAST_SALE_PRICE:
-          nftResults = await Promise.all(
-            nfts.map(async (nft) => {
-              const listing = await this.prismaService.listing.findFirst({
-                where: {
-                  nftId: nft.id,
-                  status: ListingStatus.SOLD,
-                },
-              });
-              return {
-                tokenId: nft.tokenId,
-                name: nft.name,
-                img: nft.image,
-                price: listing ? listing.price : '',
-              };
-            }),
-          );
-
-          nftResults.sort((a, b) => {
-            if (a.price < b.price) {
-              return -1; // a comes before b
+              return order;
             } else if (a.price > b.price) {
-              return 1; // a comes after b
+              return order * -1;
             }
-            return 0; // a and b are equal in terms of sort order
-          });
+            return 0;
+          })
+          .slice(start, end);
 
-          return nftResults.slice(startId * offset, startId * offset + limit);
-
-        case SortByOption.LAST_SALE_DATE:
-          nftResults = await Promise.all(
-            nfts.map(async (nft) => {
-              const listing = await this.prismaService.listing.findFirst({
-                where: {
-                  nftId: nft.id,
-                  status: ListingStatus.SOLD,
-                },
-              });
-              return {
-                tokenId: nft.tokenId,
-                name: nft.name,
-                img: nft.image,
-                createdAt: listing ? listing.createdAt : nft.createdAt,
-              };
-            }),
-          );
-
-          nftResults.sort((a, b) => {
-            if (a.createAt < b.createAt) {
-              return -1; // a comes before b
-            } else if (a.createAt > b.createAt) {
-              return 1; // a comes after b
+      case CollectionSortByOption.LAST_SALE_PRICE:
+        return soldActivities
+          .sort((a, b) => {
+            if (a.price < b.price) {
+              return order;
+            } else if (a.price > b.price) {
+              return order * -1;
             }
-            return 0; // a and b are equal in terms of sort order
-          });
+            return 0;
+          })
+          .slice(start, end);
 
-          return nftResults.slice(startId * offset, startId * offset + limit);
-
-        case SortByOption.CREATED_DATE:
-          nftResults = await Promise.all(
-            nfts.map(async (nft) => {
-              return {
-                tokenId: nft.tokenId,
-                name: nft.name,
-                img: nft.image,
-                createdAt: nft.createdAt,
-              };
-            }),
-          );
-
-          nftResults.sort((a, b) => {
-            if (a.createAt < b.createAt) {
-              return -1; // a comes before b
-            } else if (a.createAt > b.createAt) {
-              return 1; // a comes after b
+      case CollectionSortByOption.LAST_SALE_DATE:
+        return soldActivities
+          .sort((a, b) => {
+            if (a.createdAt < b.createdAt) {
+              return order;
+            } else if (a.createdAt > b.createdAt) {
+              return order * -1;
             }
-            return 0; // a and b are equal in terms of sort order
-          });
+            return 0;
+          })
+          .slice(start, end);
 
-          return nftResults.slice(startId * offset, startId * offset + limit);
-        case SortByOption.VIEWER_COUNT:
-          break;
-
-        case SortByOption.FAVORITE_COUNT:
-          break;
-
-        case SortByOption.EXPIRATION_DATE:
-          nftResults = await Promise.all(
-            nfts.map(async (nft) => {
-              const listing = await this.prismaService.listing.findFirst({
-                where: {
-                  nftId: nft.id,
-                  status: ListingStatus.ACTIVE,
-                },
-              });
-              return {
-                tokenId: nft.tokenId,
-                name: nft.name,
-                img: nft.image,
-                endTime: listing ? listing.endTime : new Date('1970-01-01'),
-              };
-            }),
-          );
-
-          nftResults.sort((a, b) => {
-            if (a.createAt < b.createAt) {
-              return -1; // a comes before b
-            } else if (a.createAt > b.createAt) {
-              return 1; // a comes after b
+      case CollectionSortByOption.CREATED_DATE:
+        return nfts
+          .sort((a, b) => {
+            if (a.createdAt < b.createdAt) {
+              return order;
+            } else if (a.createdAt > b.createdAt) {
+              return order * -1;
             }
-            return 0; // a and b are equal in terms of sort order
-          });
+            return 0;
+          })
+          .slice(start, end);
 
-          return nftResults.slice(startId * offset, startId * offset + limit);
+      case CollectionSortByOption.FAVORITE_COUNT:
+        break;
 
-        default:
-          break;
-      }
+      case CollectionSortByOption.EXPIRATION_DATE:
+        return listingActivities
+          .sort((a, b) => {
+            if (a.createdAt < b.createdAt) {
+              return order;
+            } else if (a.createdAt > b.createdAt) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+
+      default:
+        console.log(listingActivities);
+        return listingActivities
+          .sort((a, b) => {
+            if (a.price < b.price) {
+              return order;
+            } else if (a.price > b.price) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+    }
+  }
+
+  async getNftsByUser(
+    userId: string,
+    { sortAscending, sortBy }: SortParams,
+    { contains }: SearchParams,
+    { filterBy }: FilterParams,
+    { offset = 1, limit = 20, startId = 0 }: PaginationParams,
+  ) {
+    const order = sortAscending === 'asc' ? 'asc' : 'desc';
+
+    const commonWhere = {
+      name: contains ? { contains: contains.slice(0, 2) } : undefined,
+      hides: {
+        none: {},
+      },
+    };
+
+    let args = {};
+
+    switch (sortBy) {
+      case CollectionSortByOption.LISTING_DATE:
+        args = {
+          orderBy: undefined,
+          include: {
+            hides: {
+              where: {
+                userId,
+              },
+            },
+            listing: {
+              orderBy: {
+                createAt: order,
+              },
+            },
+            owner: true,
+          },
+        };
+      case CollectionSortByOption.BEST_OFFER:
+        args = {
+          orderBy: undefined,
+          include: {
+            hides: {
+              where: {
+                userId,
+              },
+            },
+            offers: {
+              orderBy: {
+                offerPrice: order,
+              },
+            },
+            owner: true,
+          },
+        };
+      case CollectionSortByOption.LAST_SALE_PRICE:
+        args = {
+          orderBy: undefined,
+          include: {
+            hides: {
+              where: {
+                userId,
+              },
+            },
+            activities: {
+              where: {
+                actionType: ActivityType.SOLD,
+              },
+              orderBy: {
+                price: order,
+              },
+            },
+            owner: true,
+          },
+        };
+      case CollectionSortByOption.LAST_SALE_DATE:
+        args = {
+          orderBy: undefined,
+          include: {
+            hides: {
+              where: {
+                userId,
+              },
+            },
+            activities: {
+              where: {
+                actionType: ActivityType.SOLD,
+              },
+              orderBy: {
+                createAt: order,
+              },
+            },
+            owner: true,
+          },
+        };
+      case CollectionSortByOption.CREATED_DATE:
+        args = {
+          orderBy: {
+            createAt: order,
+          },
+          include: {
+            hides: {
+              where: {
+                userId,
+              },
+            },
+            owner: true,
+          },
+        };
+      case CollectionSortByOption.FAVORITE_COUNT:
+        args = {
+          orderBy: {
+            likes: {
+              _count: order,
+            },
+          },
+          include: {
+            hides: {
+              where: {
+                userId,
+              },
+            },
+            owner: true,
+          },
+        };
+      case CollectionSortByOption.EXPIRATION_DATE:
+        args = {
+          orderBy: undefined,
+          include: {
+            hides: {
+              where: {
+                userId,
+              },
+            },
+            listing: {
+              orderBy: {
+                endTime: order,
+              },
+            },
+            owner: true,
+          },
+        };
+      default:
+        args = {
+          orderBy: undefined,
+          include: {
+            hides: {
+              where: {
+                userId,
+              },
+            },
+            listing: {
+              orderBy: {
+                price: order,
+              },
+            },
+            owner: true,
+          },
+        };
+    }
+
+    switch (filterBy) {
+      case UserFilterByOption.ERC721_NFTS:
+        return await this.prismaService.nFT.findMany({
+          where: {
+            ...commonWhere,
+            ownerId: userId,
+            contractType: ContractType.ERC721,
+          },
+          skip: offset * startId,
+          take: limit,
+          ...args,
+        });
+      case UserFilterByOption.ERC1155_NFTS:
+        return await this.prismaService.nFT.findMany({
+          where: {
+            ...commonWhere,
+            ownerId: userId,
+            contractType: ContractType.ERC1155,
+          },
+          skip: offset * startId,
+          take: limit,
+          ...args,
+        });
+      case UserFilterByOption.CREATED:
+        return await this.prismaService.nFT.findMany({
+          where: {
+            ...commonWhere,
+            minterId: userId,
+          },
+          skip: offset * startId,
+          take: limit,
+          ...args,
+        });
+      default:
+        return [];
     }
   }
 

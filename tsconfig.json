@@ -7,8 +7,14 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "types": ["jest", "node"],
-    "typeRoots": ["./node_modules/@types", "src/@types"],
+    "types": [
+      "jest",
+      "node"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "src/@types"
+    ],
     "moduleResolution": "node",
     "target": "es2017",
     "sourceMap": true,
@@ -23,14 +29,25 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "paths": {
-      "@modules/*": ["src/modules/*"],
-      "@config/*": ["src/config/*"],
-      "@common/*": ["src/common/*"],
-      "@prisma/*": ["src/prisma/*"],
-      "@redis/*": ["src/redis/*"],
-      "@entities/*": ["src/entities/*"],
-      "@app/*": ["src/app/*"]
+      "@modules/*": [
+        "src/modules/*"
+      ],
+      "@config/*": [
+        "src/config/*"
+      ],
+      "@common/*": [
+        "src/common/*"
+      ],
+      "@prisma/*": [
+        "src/prisma/*"
+      ],
+      "@redis/*": [
+        "src/redis/*"
+      ],
     }
   },
-  "include": ["./src", "./prisma"]
+  "include": [
+    "./src",
+    "./prisma"
+  ]
 }

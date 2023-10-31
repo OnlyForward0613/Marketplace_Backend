@@ -18,6 +18,8 @@ import { CommonModule } from './common';
 import { configuration } from './config';
 import { HealthModule } from './health';
 import { PrismaModule } from './prisma';
+import { LikeModule } from '@modules/like';
+import { HideModule } from '@modules/hide';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { PrismaModule } from './prisma';
     PrismaModule,
     RedisModule,
     UserModule,
+    LikeModule,
+    HideModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -220,6 +220,7 @@ export class Web3Service {
           const tokenUri =
             // @ts-ignore
             (await contract.methods.tokenURI(tokenId).call()) as string;
+          this.logger.log(`tokenUri is ${tokenUri}`);
           const res = await axios.get(tokenUri);
           return {
             tokenAddress,
@@ -249,7 +250,6 @@ export class Web3Service {
         transaction.data.split(methodId)[1],
       );
       orderParameters = params['orders']['0'];
-      console.log(orderParameters);
       return { orderParameters, error: '' };
     } catch (e) {
       this.logger.error(e);

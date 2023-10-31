@@ -7,6 +7,11 @@ import { GeneratorService, Web3Service } from '@common/providers';
 import { CreateListingDto } from '@modules/listing/dto/create-listing.dto';
 import { ListingDto } from '../dto/listing.dto';
 import { OrderParameters } from '@common/types';
+import {
+  FilterParams,
+  UserFilterByOption,
+} from '@common/dto/filter-params.dto';
+import { PaginationParams } from '@common/dto/pagenation-params.dto';
 
 @Injectable()
 export class ListingService {
@@ -29,6 +34,36 @@ export class ListingService {
         seller: true,
       },
     });
+  }
+
+  async getLisitingsByUser(
+    sellerId: string,
+    { filterBy }: FilterParams,
+    { offset = 1, limit = 20, startId = 0 }: PaginationParams,
+  ) {
+    switch (filterBy) {
+      case UserFilterByOption.LISTING:
+        return await this.prismaService.listing.findMany({
+          where: {
+            sellerId,
+            OR: [
+              { status: ListingStatus.ACTIVE },
+              { status: ListingStatus.SOLD },
+            ],
+          },
+          skip: offset * startId,
+          take: limit,
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            seller: true,
+            nft: true,
+          },
+        });
+      default:
+        return [];
+    }
   }
 
   async createListing(userId: string, data: CreateListingDto) {

@@ -1,10 +1,20 @@
 // offer.controller.ts
 
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { User } from '@prisma/client';
 import { CurrentUser, Public } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
-import { User } from '@prisma/client';
+import { FilterParams } from '@common/dto/filter-params.dto';
+import { PaginationParams } from '@common/dto/pagenation-params.dto';
 import { OfferService } from '../services/offer.service';
 import { CreateOfferDto } from '../dto/create-offer.dto';
 import { CancelOfferDto } from '../dto/cancel-offer.dto';
@@ -52,39 +62,15 @@ export class OfferController {
     });
   }
 
-  @ApiOperation({
-    summary: 'Get NFT offers as a seller',
-    description: 'forbidden',
-  })
+  @ApiOperation({ summary: 'Get offers by user', description: 'forbidden' })
   @UseGuards(AccessTokenGuard)
-  @Post('sell')
-  async getSellOffers(@CurrentUser() user: User) {
-    console.log(user.id);
-    return await this.offerService.getOffers({
-      where: {
-        sellerId: user.id,
-      },
-      include: {
-        nft: true,
-      },
-    });
-  }
-
-  @ApiOperation({
-    summary: 'Get NFT offers as a buyer',
-    description: 'forbidden',
-  })
-  @UseGuards(AccessTokenGuard)
-  @Post('buy')
-  async getBuyOffers(@CurrentUser() user: User) {
-    return await this.offerService.getOffers({
-      where: {
-        buyerId: user.id,
-      },
-      include: {
-        nft: true,
-      },
-    });
+  @Get('user')
+  async getUserListings(
+    @CurrentUser() user: User,
+    @Query() filter: FilterParams,
+    @Query() pagination: PaginationParams,
+  ) {
+    return await this.offerService.getOffersByUser(user.id, filter, pagination);
   }
 
   @ApiOperation({ summary: 'Create new offer', description: 'forbidden' })

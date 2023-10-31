@@ -1,7 +1,7 @@
 // launchpad.service.ts
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { Prisma, Launchpad, LaunchpadStatus } from '@prisma/client';
+import { Prisma, Launchpad, LaunchpadStatus, PeriodType } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import {
   GeneratorService,
@@ -23,7 +23,16 @@ export class LaunchpadService {
   async getLaunchpads(args: Prisma.LaunchpadFindManyArgs) {
     return await this.prismaService.launchpad.findMany({
       ...args,
-      include: { image: true, logoImg: true, creator: true },
+      include: {
+        image: true,
+        logoImg: true,
+        creator: true,
+        collection: {
+          include: {
+            nfts: true,
+          },
+        },
+      },
     });
   }
   public async getLaunchpad(
@@ -31,7 +40,16 @@ export class LaunchpadService {
   ): Promise<Launchpad> {
     return await this.prismaService.launchpad.findUnique({
       ...args,
-      include: { image: true, logoImg: true, creator: true },
+      include: {
+        image: true,
+        logoImg: true,
+        creator: true,
+        collection: {
+          include: {
+            nfts: true,
+          },
+        },
+      },
     });
   }
 
@@ -115,15 +133,6 @@ export class LaunchpadService {
         );
       }
 
-      await this.prismaService.launchpad.update({
-        data: {
-          status: LaunchpadStatus.PUBLISHED,
-        },
-        where: {
-          id: launchpad.id,
-        },
-      });
-
       const collection = await this.prismaService.collection.create({
         data: {
           id: this.generatorService.uuid(),
@@ -142,17 +151,30 @@ export class LaunchpadService {
         },
       });
 
-      await this.prismaService.stat.create({
+      await this.prismaService.launchpad.update({
+        where: {
+          id: launchpad.id,
+        },
         data: {
-          id: this.generatorService.uuid(),
-          collectionId: collection.id,
-          owners: 0,
-          listedItems: 0,
-          salesItems: 0,
-          floorPrice: launchpad.mintPrice,
-          volume: 0,
+          status: LaunchpadStatus.PUBLISHED,
+          // collectionId: collection.id,
         },
       });
+
+      for (const period of Object.values(PeriodType)) {
+        await this.prismaService.stat.create({
+          data: {
+            id: this.generatorService.uuid(),
+            collectionId: collection.id,
+            owners: 0,
+            listedItems: 0,
+            salesItems: 0,
+            floorPrice: launchpad.mintPrice,
+            volume: BigInt(0),
+            period,
+          },
+        });
+      }
 
       return launchpad;
     } catch (e) {
@@ -265,17 +287,20 @@ export class LaunchpadService {
         },
       });
 
-      await this.prismaService.stat.create({
-        data: {
-          id: this.generatorService.uuid(),
-          collectionId: collection.id,
-          owners: 0,
-          listedItems: 0,
-          salesItems: 0,
-          floorPrice: launchpad.mintPrice,
-          volume: 0,
-        },
-      });
+      for (const period of Object.values(PeriodType)) {
+        await this.prismaService.stat.create({
+          data: {
+            id: this.generatorService.uuid(),
+            collectionId: collection.id,
+            owners: 0,
+            listedItems: 0,
+            salesItems: 0,
+            floorPrice: launchpad.mintPrice,
+            volume: BigInt(0),
+            period,
+          },
+        });
+      }
 
       return launchpad;
     } catch (e) {
