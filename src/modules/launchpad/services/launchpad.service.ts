@@ -64,6 +64,7 @@ export class LaunchpadService {
         logoId: undefined,
         imageId: undefined,
         creatorId: undefined,
+        colletionId: undefined,
         id: this.generatorService.uuid(),
         status: LaunchpadStatus.APPLIED,
         creator: {
@@ -87,7 +88,7 @@ export class LaunchpadService {
           : undefined,
       } as Omit<
         Prisma.LaunchpadCreateInput,
-        'creatorId' | 'logoId' | 'imageId'
+        'creatorId' | 'logoId' | 'imageId' | 'colletionId'
       >,
     });
 
