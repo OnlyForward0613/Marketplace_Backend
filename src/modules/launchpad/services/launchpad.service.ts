@@ -157,7 +157,7 @@ export class LaunchpadService {
         },
         data: {
           status: LaunchpadStatus.PUBLISHED,
-          // collectionId: collection.id,
+          collectionId: collection.id,
         },
       });
 
