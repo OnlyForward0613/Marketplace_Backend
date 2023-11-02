@@ -7,11 +7,11 @@ export class CreateOfferDto {
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Listing id',
+    description: 'Nft id',
   })
   @IsString()
   @IsNotEmpty()
-  listingId: string;
+  nftId: string;
 
   @ApiProperty({
     required: true,

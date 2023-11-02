@@ -20,7 +20,7 @@ export class ListingService {
     private readonly prismaService: PrismaService,
     private readonly generatorService: GeneratorService,
     private readonly web3Service: Web3Service,
-  ) {}
+  ) { }
 
   async getListings(args: Prisma.ListingFindManyArgs) {
     return this.prismaService.listing.findMany(args);
@@ -38,32 +38,26 @@ export class ListingService {
 
   async getLisitingsByUser(
     sellerId: string,
-    { filterBy }: FilterParams,
     { offset = 1, limit = 20, startId = 0 }: PaginationParams,
   ) {
-    switch (filterBy) {
-      case UserFilterByOption.LISTING:
-        return await this.prismaService.listing.findMany({
-          where: {
-            sellerId,
-            OR: [
-              { status: ListingStatus.ACTIVE },
-              { status: ListingStatus.SOLD },
-            ],
-          },
-          skip: offset * startId,
-          take: limit,
-          orderBy: {
-            createdAt: 'desc',
-          },
-          include: {
-            seller: true,
-            nft: true,
-          },
-        });
-      default:
-        return [];
-    }
+    return await this.prismaService.listing.findMany({
+      where: {
+        sellerId,
+        OR: [
+          { status: ListingStatus.ACTIVE },
+          { status: ListingStatus.SOLD },
+        ],
+      },
+      skip: offset * startId,
+      take: limit,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        seller: true,
+        nft: true,
+      },
+    });
   }
 
   async createListing(userId: string, data: CreateListingDto) {

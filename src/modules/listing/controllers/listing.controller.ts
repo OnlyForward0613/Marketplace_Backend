@@ -45,15 +45,13 @@ export class ListingController {
 
   @ApiOperation({ summary: 'Get listings by user', description: 'forbidden' })
   @UseGuards(AccessTokenGuard)
-  @Get('user/:userId')
+  @Get('user')
   async getUserListings(
     @CurrentUser() user: User,
-    @Query() filter: FilterParams,
     @Query() pagination: PaginationParams,
   ) {
     return await this.listingService.getLisitingsByUser(
       user.id,
-      filter,
       pagination,
     );
   }

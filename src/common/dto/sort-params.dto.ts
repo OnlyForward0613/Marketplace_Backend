@@ -3,6 +3,7 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export enum CollectionSortByOption {
+  PRICE = 'PRICE',
   LISTING_DATE = 'LISTING_DATE',
   BEST_OFFER = 'BEST_OFFER',
   LAST_SALE_PRICE = 'LAST_SALE_PRICE',

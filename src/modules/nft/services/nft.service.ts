@@ -2,7 +2,7 @@
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { ActivityType, ContractType, NFT, Prisma } from '@prisma/client';
+import { ActivityType, ContractType, ListingStatus, NFT, Prisma } from '@prisma/client';
 
 import { GeneratorService, Web3Service } from '@common/providers';
 import { PaginationParams } from '@common/dto/pagenation-params.dto';
@@ -17,6 +17,7 @@ import {
 } from '@common/dto/filter-params.dto';
 import { CreateNftDto } from '../dto/create-nft.dto';
 import { GetNftDto } from '../dto/get-nft.dto';
+import { maxUint256 } from 'viem';
 
 @Injectable()
 export class NftService {
@@ -67,40 +68,44 @@ export class NftService {
     { contains }: SearchParams,
     { offset = 1, limit, startId = 0 }: PaginationParams,
   ) {
-    const nfts = await this.prismaService.nFT.findMany({
-      where: {
-        collectionId,
-        name: { contains: contains ? contains.slice(0, 2) : undefined },
-      },
-    });
-
-    const activitiesAll = await this.prismaService.activity.findMany({
-      where: { nftId: { in: nfts.map((nft) => nft.id) } },
-    });
-
-    const soldActivities = activitiesAll.filter(
-      (activity) => activity.actionType === ActivityType.SOLD,
-    );
-
-    const listingActivities = activitiesAll.filter(
-      (activity) => activity.actionType === ActivityType.LISTED,
-    );
-
-    const offerActivities = activitiesAll.filter(
-      (activity) => activity.actionType === ActivityType.CREATED_OFFER,
-    );
-
     const order = sortAscending === 'asc' ? 1 : -1;
     const start = startId * offset;
     const end = limit ? startId * offset + limit : -1;
+    let nfts = [];
 
     switch (sortBy) {
       case CollectionSortByOption.LISTING_DATE:
-        return listingActivities
+        nfts = await this.prismaService.nFT.findMany({
+          where: {
+            collectionId,
+            name: {
+              contains,
+              mode: 'insensitive',
+            },
+          },
+          include: {
+            activities: {
+              where: {
+                actionType: ActivityType.LISTED,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1, // Limit to only retrieve the most recent activity
+            },
+            owner: true,
+          },
+        });
+
+        return nfts
           .sort((a, b) => {
-            if (a.createdAt < b.createdAt) {
+            const init = order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
+            const first = a.activities[0]?.createdAt || init.getTime();
+            const second = b.activities[0]?.createdAt || init.getTime();
+
+            if (first > second) {
               return order;
-            } else if (a.createdAt > b.createdAt) {
+            } else if (first < second) {
               return order * -1;
             }
             return 0;
@@ -108,11 +113,37 @@ export class NftService {
           .slice(start, end);
 
       case CollectionSortByOption.BEST_OFFER:
-        return offerActivities
+        nfts = await this.prismaService.nFT.findMany({
+          where: {
+            collectionId,
+            name: {
+              contains,
+              mode: 'insensitive',
+            },
+          },
+          include: {
+            activities: {
+              where: {
+                actionType: ActivityType.CREATED_OFFER,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+            owner: true,
+          },
+        });
+
+        return nfts
           .sort((a, b) => {
-            if (a.price < b.price) {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.activities[0]?.price || BigInt(init);
+            const second = b.activities[0]?.price || BigInt(init);
+
+            if (first > second) {
               return order;
-            } else if (a.price > b.price) {
+            } else if (first < second) {
               return order * -1;
             }
             return 0;
@@ -120,11 +151,37 @@ export class NftService {
           .slice(start, end);
 
       case CollectionSortByOption.LAST_SALE_PRICE:
-        return soldActivities
+        nfts = await this.prismaService.nFT.findMany({
+          where: {
+            collectionId,
+            name: {
+              contains,
+              mode: 'insensitive',
+            },
+          },
+          include: {
+            activities: {
+              where: {
+                actionType: ActivityType.SOLD,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+            owner: true,
+          },
+        });
+
+        return nfts
           .sort((a, b) => {
-            if (a.price < b.price) {
+            const initPrice = order === 1 ? maxUint256 : 0;
+            const firstPrice = a.activities[0]?.price || BigInt(initPrice);
+            const secondPrice = b.activities[0]?.price || BigInt(initPrice);
+
+            if (firstPrice > secondPrice) {
               return order;
-            } else if (a.price > b.price) {
+            } else if (firstPrice < secondPrice) {
               return order * -1;
             }
             return 0;
@@ -132,11 +189,37 @@ export class NftService {
           .slice(start, end);
 
       case CollectionSortByOption.LAST_SALE_DATE:
-        return soldActivities
+        nfts = await this.prismaService.nFT.findMany({
+          where: {
+            collectionId,
+            name: {
+              contains,
+              mode: 'insensitive',
+            },
+          },
+          include: {
+            activities: {
+              where: {
+                actionType: ActivityType.SOLD,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+            owner: true,
+          },
+        });
+
+        return nfts
           .sort((a, b) => {
-            if (a.createdAt < b.createdAt) {
+            const init = order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
+            const first = a.activities[0]?.createdAt || init.getTime();
+            const second = b.activities[0]?.createdAt || init.getTime();
+
+            if (first > second) {
               return order;
-            } else if (a.createdAt > b.createdAt) {
+            } else if (first < second) {
               return order * -1;
             }
             return 0;
@@ -144,26 +227,84 @@ export class NftService {
           .slice(start, end);
 
       case CollectionSortByOption.CREATED_DATE:
-        return nfts
-          .sort((a, b) => {
-            if (a.createdAt < b.createdAt) {
-              return order;
-            } else if (a.createdAt > b.createdAt) {
-              return order * -1;
-            }
-            return 0;
-          })
-          .slice(start, end);
+        return await this.prismaService.nFT.findMany({
+          where: {
+            collectionId,
+            name: { contains: contains ? contains.slice(0, 2) : undefined },
+          },
+          skip: offset * startId,
+          take: limit,
+          orderBy: {
+            createdAt: sortAscending === 'asc' ? 'asc' : 'desc',
+          },
+          include: {
+            owner: true,
+          },
+        });
 
       case CollectionSortByOption.FAVORITE_COUNT:
-        break;
+        return await this.prismaService.nFT.findMany({
+          where: {
+            collectionId,
+            name: {
+              contains,
+              mode: 'insensitive',
+            },
+          },
+          include: {
+            _count: {
+              select: {
+                likes: true
+              }
+            },
+            owner: true,
+          },
+          skip: offset * startId,
+          take: limit,
+          orderBy: {
+            likes:{
+              _count: 'desc'
+            }
+          }
+        });
 
       case CollectionSortByOption.EXPIRATION_DATE:
-        return listingActivities
+        nfts = await this.prismaService.nFT.findMany({
+          where: {
+            collectionId,
+            name: {
+              contains,
+              mode: 'insensitive',
+            },
+          },
+          include: {
+            listing:{
+              where:{
+                status: ListingStatus.ACTIVE
+              }
+            },
+            activities: {
+              where: {
+                actionType: ActivityType.LISTED,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1, // Limit to only retrieve the most recent activity
+            },
+            owner: true,
+          },
+        });
+
+        return nfts
           .sort((a, b) => {
-            if (a.createdAt < b.createdAt) {
+            const init = order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
+            const first = a.listing[0]?.endTime || init.getTime();
+            const second = b.listing[0]?.endTime || init.getTime();
+
+            if (first > second) {
               return order;
-            } else if (a.createdAt > b.createdAt) {
+            } else if (first < second) {
               return order * -1;
             }
             return 0;
@@ -171,12 +312,37 @@ export class NftService {
           .slice(start, end);
 
       default:
-        console.log(listingActivities);
-        return listingActivities
+        nfts = await this.prismaService.nFT.findMany({
+          where: {
+            collectionId,
+            name: {
+              contains,
+              mode: 'insensitive',
+            },
+          },
+          include: {
+            activities: {
+              where: {
+                actionType: ActivityType.LISTED,
+              },
+              orderBy: {
+                createdAt: 'desc',
+              },
+              take: 1,
+            },
+            owner: true,
+          },
+        });
+
+        return nfts
           .sort((a, b) => {
-            if (a.price < b.price) {
+            const initPrice = order === 1 ? maxUint256 : 0;
+            const firstPrice = a.activities[0]?.price || BigInt(initPrice);
+            const secondPrice = b.activities[0]?.price || BigInt(initPrice);
+
+            if (firstPrice > secondPrice) {
               return order;
-            } else if (a.price > b.price) {
+            } else if (firstPrice < secondPrice) {
               return order * -1;
             }
             return 0;
@@ -219,6 +385,7 @@ export class NftService {
               },
             },
             owner: true,
+            collection: true,
           },
         };
       case CollectionSortByOption.BEST_OFFER:
@@ -236,6 +403,7 @@ export class NftService {
               },
             },
             owner: true,
+            collection: true,
           },
         };
       case CollectionSortByOption.LAST_SALE_PRICE:
@@ -256,6 +424,7 @@ export class NftService {
               },
             },
             owner: true,
+            collection: true,
           },
         };
       case CollectionSortByOption.LAST_SALE_DATE:
@@ -276,6 +445,7 @@ export class NftService {
               },
             },
             owner: true,
+            collection: true,
           },
         };
       case CollectionSortByOption.CREATED_DATE:
@@ -290,6 +460,7 @@ export class NftService {
               },
             },
             owner: true,
+            collection: true,
           },
         };
       case CollectionSortByOption.FAVORITE_COUNT:
@@ -306,6 +477,7 @@ export class NftService {
               },
             },
             owner: true,
+            collection: true,
           },
         };
       case CollectionSortByOption.EXPIRATION_DATE:
@@ -323,6 +495,7 @@ export class NftService {
               },
             },
             owner: true,
+            collection: true,
           },
         };
       default:
@@ -340,6 +513,7 @@ export class NftService {
               },
             },
             owner: true,
+            collection: true,
           },
         };
     }

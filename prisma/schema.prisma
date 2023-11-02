@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -143,12 +144,10 @@ model Listing {
   updatedAt DateTime      @updatedAt
   seller    User          @relation(fields: [sellerId], references: [id])
   nft       NFT           @relation(fields: [nftId], references: [id])
-  offers    Offer[]
 }
 
 model Offer {
   id         String      @id @unique
-  listingId  String
   nftId      String
   sellerId   String
   buyerId    String
@@ -162,7 +161,6 @@ model Offer {
   nft        NFT         @relation(fields: [nftId], references: [id])
   seller     User        @relation("seller", fields: [sellerId], references: [id])
   buyer      User        @relation("buyer", fields: [buyerId], references: [id])
-  listing    Listing     @relation(fields: [listingId], references: [id])
 }
 
 model Launchpad {

@@ -26,6 +26,11 @@ export class CollectionService {
         avatar: true,
         banner: true,
         creator: true,
+        stats: {
+          where: {
+            period: PeriodType.ALL,
+          },
+        },
       },
       skip: offset * startId,
       take: limit,
@@ -42,6 +47,7 @@ export class CollectionService {
         banner: true,
         creator: true,
         nfts: { select: { _count: true } },
+        stats: true,
       },
     });
   }

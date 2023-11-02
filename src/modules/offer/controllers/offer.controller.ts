@@ -41,7 +41,6 @@ export class OfferController {
         nft: true,
         seller: true,
         buyer: true,
-        listing: true,
       },
     });
   }

@@ -77,14 +77,14 @@ export class OfferService {
   }
 
   async createOffer(userId: string, data: CreateOfferDto) {
-    const listing = await this.prismaService.listing.findUnique({
+    const nft = await this.prismaService.nFT.findUnique({
       where: {
-        id: data.listingId,
+        id: data.nftId,
       },
     });
-    if (!listing)
+    if (!nft)
       throw new HttpException(
-        'Invalid listing id',
+        'Invalid nft id',
         HttpStatus.EXPECTATION_FAILED,
       );
 
@@ -101,22 +101,17 @@ export class OfferService {
           status: OfferStatus.CREATED,
           nft: {
             connect: {
-              id: listing.nftId,
+              id: nft.id,
             },
           },
           seller: {
             connect: {
-              id: listing.sellerId,
+              id: nft.ownerId,
             },
           },
           buyer: {
             connect: {
               id: userId,
-            },
-          },
-          listing: {
-            connect: {
-              id: data.listingId,
             },
           },
         },
@@ -130,7 +125,7 @@ export class OfferService {
           txHash: '',
           nft: {
             connect: {
-              id: listing.nftId,
+              id: nft.id,
             },
           },
           seller: {
@@ -233,15 +228,6 @@ export class OfferService {
         data: {
           ...offer,
           status: OfferStatus.ACCEPTED,
-        },
-      });
-
-      await this.prismaService.listing.update({
-        where: {
-          id: offer.listingId,
-        },
-        data: {
-          status: ListingStatus.SOLD,
         },
       });
 
