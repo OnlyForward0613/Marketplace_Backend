@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { CurrentUser } from '@common/decorators';
 import { AccessTokenGuard } from '@common/guards';
@@ -61,10 +61,10 @@ export class LikeController {
     return await this.likeService.createLike(user.id, nftId);
   }
 
-  @ApiOperation({ summary: 'Delete launchpad', description: 'forbidden' })
+  @ApiOperation({ summary: 'Delete like', description: 'forbidden' })
   @UseGuards(AccessTokenGuard)
-  @Delete(':id')
-  async deleteLike(@Param('id') id: string, @CurrentUser() user: User) {
-    return await this.likeService.deleteLike(id, user.id);
+  @Delete(':nftId')
+  async deleteLike(@Param('nftId') nftId: string, @CurrentUser() user: User) {
+    return await this.likeService.deleteLike(nftId, user.id);
   }
 }

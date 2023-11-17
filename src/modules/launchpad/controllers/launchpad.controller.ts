@@ -18,6 +18,7 @@ import { IPayloadUserJwt } from '@common/interfaces';
 import { LaunchpadService } from '@modules/launchpad/services/launchpad.service';
 import { CreateLaunchpadDto } from '@modules/launchpad/dto/create-launchpad.dto';
 import { GetLaunchpadDto } from '@modules/launchpad/dto/get-launchpad.dto';
+import { UpdateLaunchpadDto } from '../dto/update-launchpad.dto';
 
 const moduleName = 'launchpad';
 
@@ -72,11 +73,11 @@ export class LaunchpadController {
   async updateLaunchpad(
     @Param('id') id: string,
     @CurrentUser() payload: IPayloadUserJwt,
-    @Body() data: CreateLaunchpadDto,
+    @Body() data: UpdateLaunchpadDto,
   ) {
     return this.launchpadService.updateLaunchpad(payload.id, {
-      data: data,
       where: { id: id },
+      data,
     });
   }
 

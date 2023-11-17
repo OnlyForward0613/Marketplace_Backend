@@ -1,6 +1,7 @@
 // update-profile.dto.ts
 
 import { ApiProperty } from '@nestjs/swagger';
+import { OfferToken } from '@prisma/client';
 import { IsOptional, IsString } from 'class-validator';
 
 export class AvatarDto {
@@ -80,4 +81,30 @@ export class UpdateProfileDto {
   @IsString()
   @IsOptional()
   reddit?: string;
+
+  @ApiProperty({
+    required: false,
+    type: 'string',
+    description: 'User email',
+  })
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @ApiProperty({
+    required: false,
+    type: 'string',
+    description: 'Offer threshold token',
+  })
+  @IsString()
+  @IsOptional()
+  offerToken?: OfferToken;
+
+  @ApiProperty({
+    required: false,
+    description: 'Offer threshold value',
+  })
+  @IsString()
+  @IsOptional()
+  minOfferThreshold?: bigint;
 }

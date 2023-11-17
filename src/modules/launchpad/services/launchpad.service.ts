@@ -190,12 +190,65 @@ export class LaunchpadService {
   ): Promise<Launchpad> {
     this.logger.log(`User ${userId} is trying to update launchpad`);
     try {
-      const launchpad = await this.checkLaunchpad(args.where);
-      this.checkCreator(launchpad, userId);
+      const user = await this.prismaService.user.findUnique({
+        where: { id: userId },
+      });
+      if (!user)
+        throw new HttpException(
+          'User does not exist',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
 
-      return await this.prismaService.launchpad.update({
+      const launchpad = await this.prismaService.launchpad.update({
         ...args,
       });
+      this.checkCreator(launchpad, userId);
+
+      const collection = await this.prismaService.collection.findFirst({
+        where: {
+          launchpadId: launchpad.id,
+        },
+      });
+
+      const merkleRoot = this.merkleService
+        .formMerkleTree(launchpad.wlAddresses, 'sha256')
+        .getHexRoot();
+      this.logger.log(`new merkleroot ${merkleRoot} is generated`);
+
+      const [success, error] = await this.web3Service.editCollection(
+        collection.address,
+        launchpad.network,
+        {
+          maxSupply: launchpad.supply,
+          mintPrice: launchpad.mintPrice,
+          startTime: launchpad.startDate.getTime() / 1000,
+          endTime: launchpad.endDate.getTime() / 1000,
+          maxMintAmount: launchpad.maxPerTx,
+          maxWalletAmount: launchpad.maxPerWallet,
+          creator: user.walletAddress,
+          name: launchpad.name,
+          symbol: launchpad.symbol,
+          baseURI: launchpad.collectionUri,
+          merkleRoot: merkleRoot,
+        },
+      );
+
+      if (!success)
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+
+      await this.prismaService.collection.update({
+        where: {
+          id: collection.id,
+        },
+        data: {
+          supply: launchpad.supply,
+        },
+      });
+
+      return launchpad;
     } catch (error) {
       this.logger.error(error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);

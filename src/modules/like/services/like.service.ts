@@ -81,10 +81,19 @@ export class LikeService {
     });
   }
 
-  async deleteLike(id: string, userId: string) {
+  async deleteLike(nftId: string, userId: string) {
     try {
+      const like = await this.prismaService.like.findFirst({
+        where: { nftId, userId },
+      });
+      if (!like)
+        throw new HttpException(
+          'Invalid nftId or userId',
+          HttpStatus.EXPECTATION_FAILED,
+        );
+
       return await this.prismaService.like.delete({
-        where: { id, userId },
+        where: { id: like.id },
       });
     } catch (e) {
       this.logger.error(e);

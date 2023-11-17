@@ -11,8 +11,9 @@ import {
   IsArray,
   IsBoolean,
 } from 'class-validator';
+import { UpdateLaunchpadDto } from './update-launchpad.dto';
 
-export class CreateLaunchpadDto {
+export class CreateLaunchpadDto extends UpdateLaunchpadDto {
   @ApiProperty({
     required: true,
     type: 'string',
@@ -60,96 +61,9 @@ export class CreateLaunchpadDto {
 
   @ApiProperty({
     required: true,
-    description: 'Mint price',
-  })
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  mintPrice: bigint;
-
-  @ApiProperty({
-    required: true,
-    type: 'number',
-    description: 'Supply of collection',
-  })
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  supply: number;
-
-  @ApiProperty({
-    required: true,
-    type: 'string',
-    description: 'Collection uri of metadata',
-  })
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  collectionUri: string;
-
-  @ApiProperty({
-    required: true,
-    description: 'Owners of launchpad',
-  })
-  @ApiProperty()
-  @IsArray()
-  @IsNotEmpty()
-  owners: string[];
-
-  @ApiProperty({
-    required: true,
-    description: 'Owner Royalties of launchpad',
-  })
-  @ApiProperty()
-  @IsArray()
-  @IsNotEmpty()
-  ownerRoyalties: number[];
-
-  @ApiProperty({
-    required: true,
-    type: 'number',
-    description: 'Max per transaction',
-  })
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  maxPerTx: number;
-
-  @ApiProperty({
-    required: true,
-    type: 'number',
-    description: 'Max per wallet',
-  })
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  maxPerWallet: number;
-
-  @ApiProperty({
-    required: true,
-    type: 'boolean',
-    description: 'Is WL enabled',
-  })
-  @ApiProperty()
-  @IsBoolean()
-  @IsNotEmpty()
-  wlEnabled: boolean;
-
-  @ApiProperty({
-    required: true,
-    description: 'WL addresses of the launchpad',
-  })
-  @ApiProperty()
-  @IsArray()
-  @IsNotEmpty()
-  wlAddresses: string[];
-
-  @ApiProperty({
-    required: true,
     type: 'boolean',
     description: 'Is reserve tokens enable?',
   })
-  @ApiProperty()
   @IsBoolean()
   @IsNotEmpty()
   enableReserveTokens: boolean;
@@ -157,29 +71,8 @@ export class CreateLaunchpadDto {
   @ApiProperty({
     required: true,
     type: 'string',
-    description: 'Start date',
-  })
-  @ApiProperty()
-  @Type(() => Date)
-  @IsNotEmpty()
-  startDate: Date;
-
-  @ApiProperty({
-    required: true,
-    type: 'string',
-    description: 'End date',
-  })
-  @ApiProperty()
-  @Type(() => Date)
-  @IsNotEmpty()
-  endDate: Date;
-
-  @ApiProperty({
-    required: true,
-    type: 'string',
     description: 'network',
   })
-  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   network: Network;
@@ -189,7 +82,6 @@ export class CreateLaunchpadDto {
     type: 'string',
     description: 'Twitter url',
   })
-  @ApiProperty()
   @IsString()
   @IsOptional()
   twitter?: string;
@@ -199,7 +91,6 @@ export class CreateLaunchpadDto {
     type: 'string',
     description: 'Discord url',
   })
-  @ApiProperty()
   @IsString()
   @IsOptional()
   discord?: string;
@@ -209,7 +100,6 @@ export class CreateLaunchpadDto {
     type: 'string',
     description: 'Facebook url',
   })
-  @ApiProperty()
   @IsString()
   @IsOptional()
   facebook?: string;
@@ -219,7 +109,6 @@ export class CreateLaunchpadDto {
     type: 'string',
     description: 'Reddit url',
   })
-  @ApiProperty()
   @IsString()
   @IsOptional()
   reddit?: string;

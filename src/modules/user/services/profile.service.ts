@@ -3,7 +3,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GeneratorService } from '@common/providers';
 import { UpdateProfileDto } from '@modules/user/dto/update-profile.dto';
-import { Prisma } from '@prisma/client';
+import { OfferToken, Prisma } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { UserService } from './user.service';
 
@@ -27,13 +27,23 @@ export class ProfileService {
     if (profile)
       return await this.prismaService.profile.update({
         where: { userId: userId },
-        data: profileDto,
+        data: {
+          ...profileDto,
+          offerToken: OfferToken.ETH, // Need to add BNB for multichain
+          minOfferThreshold: profileDto.minOfferThreshold
+            ? profileDto.minOfferThreshold.toString()
+            : undefined,
+        },
       });
     else
       await this.prismaService.profile.create({
         data: {
           ...profileDto,
           id: this.generatorService.uuid(),
+          offerToken: OfferToken.ETH, // Need to add BNB for multichain
+          minOfferThreshold: profileDto.minOfferThreshold
+            ? profileDto.minOfferThreshold.toString()
+            : undefined,
           userId: undefined,
           avatarId: undefined,
           bannerId: undefined,

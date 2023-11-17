@@ -9,44 +9,46 @@ datasource db {
 }
 
 model User {
-  id                  String               @id @unique
-  username            String               @unique
-  walletAddress       String               @unique
-  nonce               String
-  isActive            Boolean              @default(true)
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  profile             Profile?
-  notificationSetting NotificationSetting?
-  collections         Collection[]
-  launchpads          Launchpad[]
-  ownedNFTs           NFT[]                @relation("owner")
-  createdNFTs         NFT[]                @relation("minter")
-  hides               Hide[]
-  likes               Like[]
-  listings            Listing[]
-  offers              Offer[]              @relation("seller")
-  boughtOffers        Offer[]              @relation("buyer")
-  sellerActivities    Activity[]           @relation("seller")
-  buyerActivities     Activity[]           @relation("buyer")
-  notifications       Notification[]
+  id               String         @id @unique
+  username         String         @unique
+  walletAddress    String         @unique
+  nonce            String
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  profile          Profile?
+  collections      Collection[]
+  launchpads       Launchpad[]
+  ownedNFTs        NFT[]          @relation("owner")
+  createdNFTs      NFT[]          @relation("minter")
+  hides            Hide[]
+  likes            Like[]
+  listings         Listing[]
+  offers           Offer[]        @relation("seller")
+  boughtOffers     Offer[]        @relation("buyer")
+  sellerActivities Activity[]     @relation("seller")
+  buyerActivities  Activity[]     @relation("buyer")
+  notifications    Notification[]
 }
 
 model Profile {
-  id        String   @id @unique
-  userId    String   @unique
-  bio       String?
-  avatarId  String?  @unique
-  bannerId  String?  @unique
-  twitter   String?
-  discord   String?
-  facebook  String?
-  reddit    String?
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  avatar    Photo?   @relation("avatar", fields: [avatarId], references: [id])
-  banner    Photo?   @relation("banner", fields: [bannerId], references: [id])
+  id                String      @id @unique
+  userId            String      @unique
+  bio               String?
+  avatarId          String?     @unique
+  bannerId          String?     @unique
+  twitter           String?
+  discord           String?
+  facebook          String?
+  reddit            String?
+  email             String?     @unique
+  offerToken        OfferToken?
+  minOfferThreshold String?
+  updatedAt         DateTime    @updatedAt
+  createdAt         DateTime    @default(now())
+  user              User        @relation(fields: [userId], references: [id])
+  avatar            Photo?      @relation("avatar", fields: [avatarId], references: [id])
+  banner            Photo?      @relation("banner", fields: [bannerId], references: [id])
 }
 
 model Photo {
@@ -182,6 +184,7 @@ model Launchpad {
   enableReserveTokens Boolean
   startDate           DateTime
   endDate             DateTime
+  prefix              String          @default("")
   network             Network
   twitter             String?
   discord             String?
@@ -234,17 +237,6 @@ model Like {
   nft       NFT      @relation(fields: [nftId], references: [id])
 }
 
-model NotificationSetting {
-  id                   String   @id @unique
-  userId               String   @unique
-  notifyEmail          String
-  minOfferTokenAddress String
-  minOfferThreshold    BigInt
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  user                 User     @relation(fields: [userId], references: [id])
-}
-
 model Notification {
   id           String           @id @unique
   userId       String
@@ -294,6 +286,11 @@ enum NotificationType {
 enum Network {
   BNB
   MAIN
+}
+
+enum OfferToken {
+  BNB
+  ETH
 }
 
 enum ListingStatus {

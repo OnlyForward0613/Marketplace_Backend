@@ -12,6 +12,7 @@ import { LaunchpadModule } from '@modules/launchpad';
 import { ListingModule } from '@modules/listing';
 import { UserModule } from '@modules/user';
 import { OfferModule } from '@modules/offer';
+import { NotificationModule } from '@modules/notification';
 import { NftModule } from '@modules/nft';
 
 import { CommonModule } from './common';
@@ -35,6 +36,7 @@ import { HideModule } from '@modules/hide';
     LaunchpadModule,
     ListingModule,
     NftModule,
+    NotificationModule,
     OfferModule,
     PrismaModule,
     RedisModule,

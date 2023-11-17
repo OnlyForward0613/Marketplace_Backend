@@ -1,17 +1,20 @@
 // listing.service.ts
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { ActivityType, ListingStatus, Prisma } from '@prisma/client';
+import {
+  ActivityType,
+  ListingStatus,
+  NotificationType,
+  Prisma,
+} from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
+
+import { PaginationParams } from '@common/dto/pagenation-params.dto';
 import { GeneratorService, Web3Service } from '@common/providers';
+import { OrderParameters } from '@common/types';
+import { NotificationService } from '@modules/notification/services/notification.service';
 import { CreateListingDto } from '@modules/listing/dto/create-listing.dto';
 import { ListingDto } from '../dto/listing.dto';
-import { OrderParameters } from '@common/types';
-import {
-  FilterParams,
-  UserFilterByOption,
-} from '@common/dto/filter-params.dto';
-import { PaginationParams } from '@common/dto/pagenation-params.dto';
 
 @Injectable()
 export class ListingService {
@@ -20,7 +23,8 @@ export class ListingService {
     private readonly prismaService: PrismaService,
     private readonly generatorService: GeneratorService,
     private readonly web3Service: Web3Service,
-  ) { }
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async getListings(args: Prisma.ListingFindManyArgs) {
     return this.prismaService.listing.findMany(args);
@@ -43,10 +47,7 @@ export class ListingService {
     return await this.prismaService.listing.findMany({
       where: {
         sellerId,
-        OR: [
-          { status: ListingStatus.ACTIVE },
-          { status: ListingStatus.SOLD },
-        ],
+        OR: [{ status: ListingStatus.ACTIVE }, { status: ListingStatus.SOLD }],
       },
       skip: offset * startId,
       take: limit,
@@ -226,7 +227,7 @@ export class ListingService {
         },
       });
 
-      await this.prismaService.activity.create({
+      const activity = await this.prismaService.activity.create({
         data: {
           id: this.generatorService.uuid(),
           price: result.orderParameters.consideration[0].amount,
@@ -239,11 +240,25 @@ export class ListingService {
           },
           seller: {
             connect: {
+              id: updatedListing.sellerId,
+            },
+          },
+          buyer: {
+            connect: {
               id: userId,
             },
           },
         },
       });
+
+      this.logger.log('Creating Notification to seller for NFT Sold');
+      await this.notificationService.createNotification(
+        updatedListing.sellerId,
+        {
+          activityId: activity.id,
+          type: NotificationType.SOLD,
+        },
+      );
 
       return updatedListing;
     } catch (err) {

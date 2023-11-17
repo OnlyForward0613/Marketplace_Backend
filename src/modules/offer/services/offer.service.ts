@@ -3,21 +3,24 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import {
   ActivityType,
-  ListingStatus,
+  NotificationType,
   OfferStatus,
   Prisma,
 } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
+
 import { GeneratorService, Web3Service } from '@common/providers';
 import { OrderComponent } from '@common/types';
-import { CreateOfferDto } from '../dto/create-offer.dto';
-import { CancelOfferDto } from '../dto/cancel-offer.dto';
-import { AcceptOfferDto } from '../dto/accept-offer.dto';
 import {
   FilterParams,
   UserFilterByOption,
 } from '@common/dto/filter-params.dto';
 import { PaginationParams } from '@common/dto/pagenation-params.dto';
+import { NotificationService } from '@modules/notification/services/notification.service';
+
+import { CreateOfferDto } from '../dto/create-offer.dto';
+import { CancelOfferDto } from '../dto/cancel-offer.dto';
+import { AcceptOfferDto } from '../dto/accept-offer.dto';
 
 @Injectable()
 export class OfferService {
@@ -26,6 +29,7 @@ export class OfferService {
     private readonly prismaService: PrismaService,
     private readonly generatorService: GeneratorService,
     private readonly web3Service: Web3Service,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async getOffers(args: Prisma.OfferFindManyArgs) {
@@ -83,10 +87,7 @@ export class OfferService {
       },
     });
     if (!nft)
-      throw new HttpException(
-        'Invalid nft id',
-        HttpStatus.EXPECTATION_FAILED,
-      );
+      throw new HttpException('Invalid nft id', HttpStatus.EXPECTATION_FAILED);
 
     try {
       const parameters: OrderComponent = JSON.parse(data.parameters);
@@ -117,7 +118,7 @@ export class OfferService {
         },
       });
 
-      await this.prismaService.activity.create({
+      const activity = await this.prismaService.activity.create({
         data: {
           id: this.generatorService.uuid(),
           price,
@@ -128,12 +129,24 @@ export class OfferService {
               id: nft.id,
             },
           },
-          seller: {
+          buyer: {
             connect: {
               id: userId,
             },
           },
+          seller: {
+            connect: {
+              id: nft.ownerId,
+            },
+          },
         },
+      });
+
+      // TODO: need to validate if the seller's minOfferThreshold is valid
+      this.logger.log('Creating notification for seller to get new offer');
+      await this.notificationService.createNotification(nft.ownerId, {
+        activityId: activity.id,
+        type: NotificationType.NEW_OFFER,
       });
 
       return newOffer;
@@ -240,7 +253,7 @@ export class OfferService {
         },
       });
 
-      await this.prismaService.activity.create({
+      const activity = await this.prismaService.activity.create({
         data: {
           id: this.generatorService.uuid(),
           price: result.orderParameters.consideration[0].amount,
@@ -262,6 +275,15 @@ export class OfferService {
             },
           },
         },
+      });
+
+      // TODO: need to validate if the buyer's minOfferThreshold is valid
+      this.logger.log(
+        'Creating notification for buyer to nft offer is accepted',
+      );
+      await this.notificationService.createNotification(offer.buyerId, {
+        activityId: activity.id,
+        type: NotificationType.OFFER_ACCEPTED,
       });
 
       return updatedOffer;

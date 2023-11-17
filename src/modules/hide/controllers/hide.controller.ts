@@ -50,8 +50,8 @@ export class HideController {
 
   @ApiOperation({ summary: 'Delete hide', description: 'forbidden' })
   @UseGuards(AccessTokenGuard)
-  @Delete(':id')
-  async deleteHide(@Param('id') id: string, @CurrentUser() user: User) {
-    return await this.hideService.deleteHide(id, user.id);
+  @Delete(':nftId')
+  async deleteHide(@Param('nftId') nftId: string, @CurrentUser() user: User) {
+    return await this.hideService.deleteHide(nftId, user.id);
   }
 }

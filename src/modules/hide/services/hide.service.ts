@@ -65,10 +65,19 @@ export class HideService {
     });
   }
 
-  async deleteHide(id: string, userId: string) {
+  async deleteHide(nftId: string, userId: string) {
     try {
+      const hide = await this.prismaService.hide.findFirst({
+        where: { nftId, userId },
+      });
+      if (!hide)
+        throw new HttpException(
+          'Invalid nftId or userId',
+          HttpStatus.EXPECTATION_FAILED,
+        );
+
       return await this.prismaService.hide.delete({
-        where: { id, userId },
+        where: { id: hide.id },
       });
     } catch (e) {
       this.logger.error(e);

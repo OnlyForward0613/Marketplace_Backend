@@ -6,6 +6,9 @@ import { GeneratorService, Web3Service } from '@common/providers';
 import { Collection, PeriodType, Prisma } from '@prisma/client';
 import { SearchParams } from '@common/dto/search-params.dto';
 import { PaginationParams } from '@common/dto/pagenation-params.dto';
+import { maxUint256 } from 'viem';
+import { FilterParams } from '@common/dto/filter-params.dto';
+import { SortParams, StatsSortByOption } from '@common/dto/sort-params.dto';
 
 @Injectable()
 export class CollectionService {
@@ -15,12 +18,22 @@ export class CollectionService {
   ) {}
 
   async getCollections(
+    { sortBy, sortAscending }: SortParams,
     { contains }: SearchParams,
-    { offset = 1, limit = 4, startId = 0 }: PaginationParams,
+    { period }: FilterParams,
+    { offset = 1, startId = 0, limit }: PaginationParams,
   ) {
-    return this.prismaService.collection.findMany({
+    const order = sortAscending === 'asc' ? 1 : -1;
+
+    const start = startId * offset;
+    const end = limit ? startId * offset + limit : -1;
+
+    const collections = await this.prismaService.collection.findMany({
       where: {
-        name: { contains: contains ? contains.slice(0, 2) : undefined },
+        name: {
+          contains,
+          mode: 'insensitive',
+        },
       },
       include: {
         avatar: true,
@@ -28,16 +41,138 @@ export class CollectionService {
         creator: true,
         stats: {
           where: {
-            period: PeriodType.ALL,
+            period,
           },
+          take: 1,
         },
       },
-      skip: offset * startId,
-      take: limit,
     });
+
+    switch (sortBy) {
+      case StatsSortByOption.FLOOR:
+        return collections
+          .sort((a, b) => {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.stats[0]?.floorPrice || BigInt(init);
+            const second = b.stats[0]?.floorPrice || BigInt(init);
+
+            if (first > second) {
+              return order * 1;
+            } else if (first < second) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+      case StatsSortByOption.ITEMS:
+        return collections
+          .sort((a, b) => {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.supply || init;
+            const second = b.supply || init;
+
+            if (first > second) {
+              return order * 1;
+            } else if (first < second) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+      case StatsSortByOption.LIQUIDITY:
+        return collections
+          .sort((a, b) => {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.stats[0]?.increased || init;
+            const second = b.stats[0]?.increased || init;
+
+            if (first > second) {
+              return order * 1;
+            } else if (first < second) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+      case StatsSortByOption.LISTED:
+        return collections
+          .sort((a, b) => {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.stats[0]?.listedItems || init;
+            const second = b.stats[0]?.listedItems || init;
+
+            if (first > second) {
+              return order * 1;
+            } else if (first < second) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+      case StatsSortByOption.OWNERS:
+        return collections
+          .sort((a, b) => {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.stats[0]?.owners || init;
+            const second = b.stats[0]?.owners || init;
+
+            if (first > second) {
+              return order * 1;
+            } else if (first < second) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+      case StatsSortByOption.SALES:
+        return collections
+          .sort((a, b) => {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.stats[0]?.salesItems || init;
+            const second = b.stats[0]?.salesItems || init;
+
+            if (first > second) {
+              return order * 1;
+            } else if (first < second) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+      case StatsSortByOption.VOLUME:
+        return collections
+          .sort((a, b) => {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.stats[0]?.volume || BigInt(init);
+            const second = b.stats[0]?.volume || BigInt(init);
+
+            if (first > second) {
+              return order * 1;
+            } else if (first < second) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+      default:
+        return collections
+          .sort((a, b) => {
+            const init = order === 1 ? maxUint256 : 0;
+            const first = a.stats[0]?.volume || BigInt(init);
+            const second = b.stats[0]?.volume || BigInt(init);
+
+            if (first > second) {
+              return order * 1;
+            } else if (first < second) {
+              return order * -1;
+            }
+            return 0;
+          })
+          .slice(start, end);
+    }
   }
 
-  public async getCollection(
+  async getCollection(
     args: Prisma.CollectionFindUniqueArgs,
   ): Promise<Collection> {
     return await this.prismaService.collection.findUnique({
@@ -48,6 +183,84 @@ export class CollectionService {
         creator: true,
         nfts: { select: { _count: true } },
         stats: true,
+      },
+    });
+  }
+
+  async getTopCollections({ period }: FilterParams) {
+    const collections = await this.prismaService.collection.findMany({
+      include: {
+        stats: {
+          where: {
+            period,
+          },
+          take: 1,
+        },
+        avatar: true,
+        banner: true,
+      },
+    });
+
+    return collections
+      .sort((a, b) => {
+        const init = maxUint256;
+        const first = a.stats[0]?.volume || BigInt(init);
+        const second = b.stats[0]?.volume || BigInt(init);
+
+        if (first > second) {
+          return 1;
+        } else if (first < second) {
+          return -1;
+        }
+        return 0;
+      })
+      .slice(0, 12);
+  }
+
+  async getNotableCollections() {
+    const collections = await this.prismaService.collection.findMany({
+      include: {
+        stats: {
+          where: {
+            period: PeriodType.ALL,
+          },
+          take: 1,
+        },
+        avatar: true,
+        banner: true,
+      },
+    });
+
+    return collections
+      .sort((a, b) => {
+        const init = maxUint256;
+        const first = a.stats[0]?.volume || BigInt(init);
+        const second = b.stats[0]?.volume || BigInt(init);
+
+        if (first > second) {
+          return 1;
+        } else if (first < second) {
+          return -1;
+        }
+        return 0;
+      })
+      .slice(0, 3);
+  }
+
+  async getFeaturedCollections() {
+    return await this.prismaService.collection.findMany({
+      where: {
+        feature: true,
+      },
+      include: {
+        stats: {
+          where: {
+            period: PeriodType.ALL,
+          },
+          take: 1,
+        },
+        avatar: true,
+        banner: true,
       },
     });
   }

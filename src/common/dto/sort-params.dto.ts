@@ -13,16 +13,14 @@ export enum CollectionSortByOption {
   EXPIRATION_DATE = 'EXPIRATION_DATE',
 }
 
-export enum UserSortByOption {
-  ERC721_NFTS = 'ERC721_NFTS',
-  ERC1155_NFTS = 'ERC1155_NFTS',
-  CREATED = 'CREATED',
-  ACTIVITY = 'ACTIVITY',
-  FAVORITE = 'FAVORITE',
-  HIDDEN = 'HIDDEN',
-  LISTING = 'LISTING',
-  BUY_OFFER = 'BUY_OFFER',
-  SELL_OFFER = 'SELL_OFFER',
+export enum StatsSortByOption {
+  VOLUME = 'VOLUME',
+  LIQUIDITY = 'LIQUIDITY',
+  FLOOR = 'FLOOR',
+  SALES = 'SALES',
+  ITEMS = 'ITEMS',
+  LISTED = 'LISTED',
+  OWNERS = 'OWNERS',
 }
 
 export class SortParams {
@@ -31,6 +29,9 @@ export class SortParams {
   sortAscending?: string;
 
   @IsOptional()
-  @IsEnum(CollectionSortByOption)
-  sortBy?: CollectionSortByOption;
+  @IsEnum([
+    ...Object.values(CollectionSortByOption),
+    ...Object.values(StatsSortByOption),
+  ])
+  sortBy?: CollectionSortByOption | StatsSortByOption;
 }

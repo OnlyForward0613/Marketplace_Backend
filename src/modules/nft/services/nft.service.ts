@@ -2,7 +2,13 @@
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { ActivityType, ContractType, ListingStatus, NFT, Prisma } from '@prisma/client';
+import {
+  ActivityType,
+  ContractType,
+  ListingStatus,
+  NFT,
+  Prisma,
+} from '@prisma/client';
 
 import { GeneratorService, Web3Service } from '@common/providers';
 import { PaginationParams } from '@common/dto/pagenation-params.dto';
@@ -99,7 +105,8 @@ export class NftService {
 
         return nfts
           .sort((a, b) => {
-            const init = order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
+            const init =
+              order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
             const first = a.activities[0]?.createdAt || init.getTime();
             const second = b.activities[0]?.createdAt || init.getTime();
 
@@ -213,7 +220,8 @@ export class NftService {
 
         return nfts
           .sort((a, b) => {
-            const init = order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
+            const init =
+              order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
             const first = a.activities[0]?.createdAt || init.getTime();
             const second = b.activities[0]?.createdAt || init.getTime();
 
@@ -254,18 +262,18 @@ export class NftService {
           include: {
             _count: {
               select: {
-                likes: true
-              }
+                likes: true,
+              },
             },
             owner: true,
           },
           skip: offset * startId,
           take: limit,
           orderBy: {
-            likes:{
-              _count: 'desc'
-            }
-          }
+            likes: {
+              _count: 'desc',
+            },
+          },
         });
 
       case CollectionSortByOption.EXPIRATION_DATE:
@@ -278,10 +286,10 @@ export class NftService {
             },
           },
           include: {
-            listing:{
-              where:{
-                status: ListingStatus.ACTIVE
-              }
+            listing: {
+              where: {
+                status: ListingStatus.ACTIVE,
+              },
             },
             activities: {
               where: {
@@ -298,7 +306,8 @@ export class NftService {
 
         return nfts
           .sort((a, b) => {
-            const init = order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
+            const init =
+              order === 1 ? new Date('2970-01-01') : new Date('1970-01-01');
             const first = a.listing[0]?.endTime || init.getTime();
             const second = b.listing[0]?.endTime || init.getTime();
 
@@ -557,7 +566,32 @@ export class NftService {
   }
 
   async createNft(userId: string, data: CreateNftDto): Promise<NFT[]> {
-    const result = await this.web3Service.mintNft(data);
+    const collection = await this.prismaService.collection.findUnique({
+      where: { id: data.collectionId },
+    });
+    if (!collection) {
+      throw new HttpException(
+        'Invalid collection id',
+        HttpStatus.EXPECTATION_FAILED,
+      );
+    }
+
+    const launchpad = await this.prismaService.launchpad.findUnique({
+      where: {
+        id: collection.launchpadId,
+      },
+    });
+    if (!collection) {
+      throw new HttpException(
+        'Invalid launchpad collection id',
+        HttpStatus.EXPECTATION_FAILED,
+      );
+    }
+
+    const result = await this.web3Service.mintNft({
+      ...data,
+      prefix: launchpad.prefix,
+    });
     if (result.error !== '') {
       this.logger.error(result.error);
       throw new HttpException(result.error, HttpStatus.EXPECTATION_FAILED);

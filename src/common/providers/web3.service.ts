@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ConsoleLogger, Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Network } from '@prisma/client';
@@ -194,7 +194,81 @@ export class Web3Service {
     }
   }
 
-  async mintNft({ network, txHash }: CreateNftDto) {
+  async editCollection(
+    collectionAddress: string,
+    network: Network,
+    data: DeployLaunchpadDto,
+  ) {
+    const contract = new this.web3[network].eth.Contract(
+      ERC721A_ABI,
+      collectionAddress,
+    );
+
+    console.log(data);
+
+    const platFormFee = Number(
+      await this.launchpadContract[network].methods.platFormFee().call(),
+    );
+    console.log('platFormFee', platFormFee);
+
+    const txData = contract.methods
+      .setBaseInfo(
+        // @ts-ignore
+        data.maxSupply,
+        data.mintPrice,
+        data.startTime,
+        data.endTime,
+        data.maxMintAmount,
+        data.maxWalletAmount,
+        platFormFee,
+        data.creator,
+        data.name,
+        data.symbol,
+        data.baseURI,
+        data.merkleRoot,
+      )
+      .encodeABI();
+
+    try {
+      const txObj = {
+        from: this.account[network].address,
+        to: collectionAddress,
+        data: txData,
+      };
+
+      const gas = await this.web3[network].eth.estimateGas(txObj);
+      const gasPrice = await this.web3[network].eth.getGasPrice();
+
+      this.logger.log(`gas ${gas}`);
+      this.logger.log(`gas ${gasPrice}`);
+
+      const sTx = await this.web3[network].eth.accounts.signTransaction(
+        { ...txObj, gas, gasPrice },
+        this.account[network].privateKey,
+      );
+
+      const rept = await this.web3[network].eth.sendSignedTransaction(
+        sTx.rawTransaction,
+      );
+      console.log(rept);
+
+      this.logger.log(`transaction ${rept.transactionHash} is occurred`);
+      return [true, ''];
+    } catch (e) {
+      this.logger.error(e);
+      return [false, e];
+    }
+  }
+
+  async mintNft({
+    network,
+    txHash,
+    prefix,
+  }: {
+    network: Network;
+    txHash: string;
+    prefix: string;
+  }) {
     let tokenDatas: TokenData[] = {} as TokenData[];
     const rept = await this.getTransactionReceipt(network, txHash);
     try {
@@ -219,7 +293,10 @@ export class Web3Service {
           );
           const tokenUri =
             // @ts-ignore
-            (await contract.methods.tokenURI(tokenId).call()) as string;
+            ((await contract.methods.tokenURI(tokenId).call()) as string) +
+            prefix
+              ? `.${prefix}`
+              : '';
           this.logger.log(`tokenUri is ${tokenUri}`);
           let metadata = {
             name: '',
@@ -229,7 +306,15 @@ export class Web3Service {
           };
           try {
             const res = await axios.get(tokenUri);
-            metadata = res.data;
+            let image = (await res.data?.image) || '';
+            image = image.replace('ipfs://', 'https://ipfs.io/ipfs/');
+            image = image.replace('nftstorage.link', 'ipfs.io');
+            metadata = {
+              name: res.data?.name || '',
+              description: res.data?.description || '',
+              image,
+              attributes: res.data?.attributes || '',
+            };
           } catch (e) {
             this.logger.error(e);
           }
